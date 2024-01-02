@@ -15,9 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Stocker',
       theme: MyTheme().theme,
-      home: const Scaffold(
-        body: MainScreen(),
-      ),
+      home: MainScreen(),
     );
   }
 }
