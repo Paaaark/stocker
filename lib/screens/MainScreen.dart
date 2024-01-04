@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void waitForData() async {
     timeSeriesDaily = await APIService.getTimeSeriesDaily(symbol);
-    isLoading = false;
+    // isLoading = false;
     setState(() {});
   }
 
@@ -43,9 +43,17 @@ class _MainScreenState extends State<MainScreen> {
                       textStyle: TextStyle(
                         color: Theme.of(context).textTheme.displayLarge?.color,
                       )),
-                  primaryXAxis: DateTimeAxis(),
+                  primaryXAxis: DateTimeAxis(
+                    autoScrollingDelta: 7,
+                  ),
                   primaryYAxis: NumericAxis(
+                    minimum: 120,
+                    maximum: 180,
                     anchorRangeToVisiblePoints: false,
+                  ),
+                  zoomPanBehavior: ZoomPanBehavior(
+                    enablePinching: true,
+                    enablePanning: true,
                   ),
                   series: <CartesianSeries>[
                     // Renders hiloOpenCloseSeries
