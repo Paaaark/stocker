@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void waitForData() async {
     timeSeriesDaily = await APIService.getTimeSeriesDaily(symbol);
-    // isLoading = false;
+    isLoading = false;
     setState(() {});
   }
 
@@ -44,21 +44,23 @@ class _MainScreenState extends State<MainScreen> {
                         color: Theme.of(context).textTheme.displayLarge?.color,
                       )),
                   primaryXAxis: DateTimeAxis(
-                    autoScrollingDelta: 7,
+                    autoScrollingMode: AutoScrollingMode.end,
                   ),
                   primaryYAxis: NumericAxis(
-                    minimum: 120,
-                    maximum: 180,
-                    anchorRangeToVisiblePoints: false,
+                    visibleMinimum: 120,
+                    visibleMaximum: 180,
+                    anchorRangeToVisiblePoints: true,
                   ),
                   zoomPanBehavior: ZoomPanBehavior(
                     enablePinching: true,
+                    zoomMode: ZoomMode.x,
                     enablePanning: true,
                   ),
                   series: <CartesianSeries>[
                     // Renders hiloOpenCloseSeries
-                    HiloOpenCloseSeries<DataPointDaily, DateTime>(
+                    CandleSeries<DataPointDaily, DateTime>(
                       dataSource: timeSeriesDaily!.asList(),
+                      enableSolidCandles: true,
                       xValueMapper: (DataPointDaily data, _) => data.date,
                       lowValueMapper: (DataPointDaily data, _) => data.low,
                       highValueMapper: (DataPointDaily data, _) => data.high,
