@@ -15,16 +15,43 @@ class _MainScreenState extends State<MainScreen> {
   TimeSeriesDaily? timeSeriesDaily;
   bool isLoading = true;
   String symbol = "IBM";
+  List<Widget> gridChildren = [
+    const Text("Still Loaindg!"),
+  ];
+
+  void onPressAddChart() {
+    gridChildren.insert(
+      gridChildren.length - 1,
+      StaggeredGridTile.count(
+        mainAxisCellCount: 1,
+        crossAxisCellCount: 1,
+        child: Text("${gridChildren.length}"),
+      ),
+    );
+    setState(() => {});
+  }
 
   void waitForData() async {
     timeSeriesDaily = await APIService.getTimeSeriesDaily(symbol);
     isLoading = false;
-    setState(() {});
+    setState(() {
+      gridChildren[0] = SingleStockChart(timeSeriesDaily: timeSeriesDaily);
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    gridChildren.add(
+      StaggeredGridTile.count(
+        crossAxisCellCount: 1,
+        mainAxisCellCount: 1,
+        child: IconButton(
+          onPressed: onPressAddChart,
+          icon: const Icon(Icons.add_chart),
+        ),
+      ),
+    );
     waitForData();
   }
 
@@ -32,49 +59,14 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: isLoading
-            ? const Text("Still Loading!")
-            : StaggeredGrid.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-                children: [
-                  StaggeredGridTile.count(
-                    crossAxisCellCount: 2,
-                    mainAxisCellCount: 1,
-                    child: Container(
-                      margin: const EdgeInsets.all(20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
-                      ),
-                      child: CandleChart(timeSeriesDaily: timeSeriesDaily),
-                    ),
-                  ),
-                  const StaggeredGridTile.count(
-                    crossAxisCellCount: 1,
-                    mainAxisCellCount: 1,
-                    child: SizedBox(
-                      width: 200,
-                      child: Center(
-                        child: Text("Item 2"),
-                      ),
-                    ),
-                  ),
-                  const StaggeredGridTile.count(
-                    crossAxisCellCount: 1,
-                    mainAxisCellCount: 1,
-                    child: SizedBox(
-                      width: 200,
-                      child: Center(
-                        child: Text("Item 3"),
-                      ),
-                    ),
-                  )
-                ],
-              ),
+        body: SingleChildScrollView(
+          child: StaggeredGrid.count(
+            crossAxisCount: MediaQuery.sizeOf(context).width > 1200 ? 4 : 2,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
+            children: gridChildren,
+          ),
+        ),
       ),
     );
   }
