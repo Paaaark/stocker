@@ -1,7 +1,8 @@
 class TimeSeriesDaily {
   late final Map<DateTime, DataPointDaily> data;
+  final String symbol;
 
-  TimeSeriesDaily.fromJSON(Map<String, dynamic> json) {
+  TimeSeriesDaily.fromJSON(Map<String, dynamic> json, this.symbol) {
     Map<DateTime, DataPointDaily> myData = {};
     final List<String> fetchedDates = json.keys.toList();
     for (var date in fetchedDates) {

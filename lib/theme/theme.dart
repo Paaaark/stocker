@@ -7,7 +7,7 @@ class MyTheme {
         color: Color.fromARGB(255, 212, 212, 212),
       ),
     ),
-    cardColor: const Color(0xFFF4EDDB),
+    cardColor: const Color.fromARGB(255, 30, 30, 30),
     colorScheme:
         const ColorScheme.dark(background: Color.fromARGB(255, 44, 44, 44)),
   );
