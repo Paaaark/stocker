@@ -9,6 +9,9 @@ import 'package:stocker/models/time_series_daily.dart';
 enum DataType {
   stockDaily,
   sma,
+  rsi,
+  obv,
+  stoch,
 }
 
 class APIService {
@@ -18,6 +21,9 @@ class APIService {
   static const Map<DataType, String> dataTypeEnumToString = {
     DataType.stockDaily: "TIME_SERIES_DAILY",
     DataType.sma: "SMA",
+    DataType.rsi: "RSI",
+    DataType.obv: "OBV",
+    DataType.stoch: "STOCH",
   };
 
   /// Returns a future of daily data of the desired symbol
@@ -49,8 +55,20 @@ class APIService {
         url =
             "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&time_period=10&series_type=open&apikey=demo";
         break;
+      case DataType.rsi:
+        url =
+            "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&time_period=10&series_type=open&apikey=demo";
+        break;
+      case DataType.obv:
+        url =
+            "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&apikey=demo";
+        break;
+      case DataType.stoch:
+        url =
+            "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=daily&apikey=demo";
+        break;
     }
-    
+
     url = Uri.parse(url);
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -58,7 +76,8 @@ class APIService {
       if (dataType == DataType.stockDaily) {
         return TimeSeriesDaily.fromJSON(fetchedData);
       }
-      if (dataType == DataType.sma) {
+      if ([DataType.sma, DataType.rsi, DataType.obv, DataType.stoch]
+          .contains(dataType)) {
         return TechnicalIndicatorDaily.fromJSON(fetchedData);
       }
     }

@@ -16,10 +16,7 @@ class _SingleStockChartState extends State<SingleStockChart> {
   bool showSettings = false;
   bool isLoading = true;
   String symbol = "IBM";
-  List<DataType> dataTypeOptions = [
-    DataType.stockDaily,
-    DataType.sma,
-  ];
+  List<DataType> dataTypeOptions = DataType.values;
   List<DataType> dataTypes = [
     DataType.sma,
   ];
@@ -59,6 +56,12 @@ class _SingleStockChartState extends State<SingleStockChart> {
     setState(() {});
   }
 
+  void onSelectDataType(int index, DataType value) {
+    setState(() {
+      dataTypes[index] = value;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -74,7 +77,7 @@ class _SingleStockChartState extends State<SingleStockChart> {
           child: Text(APIService.dataTypeEnumToString[value]!),
         );
       }).toList(),
-      onChanged: (DataType? value) => {dataTypes[index] = value!},
+      onChanged: (DataType? value) => {onSelectDataType(index, value!)},
     );
   }
 
