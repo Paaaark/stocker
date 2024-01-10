@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:stocker/models/time_series_daily.dart';
 import 'package:stocker/services/api_service.dart';
-import 'package:stocker/widgets/candle_chart.dart';
+import 'package:stocker/widgets/single_stock_chart.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,11 +12,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  TimeSeriesDaily? timeSeriesDaily;
-  bool isLoading = true;
-  String symbol = "IBM";
   List<Widget> gridChildren = [
-    const Text("Still Loaindg!"),
+    SingleStockChart(),
   ];
 
   void onPressAddChart() {
@@ -29,14 +26,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
     setState(() => {});
-  }
-
-  void waitForData() async {
-    timeSeriesDaily = await APIService.getTimeSeriesDaily(symbol);
-    isLoading = false;
-    setState(() {
-      gridChildren[0] = SingleStockChart(timeSeriesDaily: timeSeriesDaily);
-    });
   }
 
   @override
@@ -52,7 +41,6 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
-    waitForData();
   }
 
   @override

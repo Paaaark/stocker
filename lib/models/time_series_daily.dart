@@ -1,8 +1,12 @@
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:stocker/services/api_service.dart';
+
+
 class TimeSeriesDaily {
   late final Map<DateTime, DataPointDaily> data;
-  final String symbol;
+  late final String symbol;
 
-  TimeSeriesDaily.fromJSON(Map<String, dynamic> json, this.symbol) {
+  TimeSeriesDaily.fromJSONWithSymbol(Map<String, dynamic> json, this.symbol) {
     Map<DateTime, DataPointDaily> myData = {};
     final List<String> fetchedDates = json.keys.toList();
     for (var date in fetchedDates) {
@@ -12,8 +16,33 @@ class TimeSeriesDaily {
     data = myData;
   }
 
+  TimeSeriesDaily.fromJSON(Map<String, dynamic> json) {
+    Map<DateTime, DataPointDaily> myData = {};
+    Map<String, dynamic> stockData = json['Time Series (Daily)'];
+    Map<String, dynamic> metaData = json['Meta Data'];
+    final List<String> fetchedDates = stockData.keys.toList();
+    for (var date in fetchedDates) {
+      myData[DateTime.parse(date)] =
+          DataPointDaily.fromJSONAndDate(stockData[date], DateTime.parse(date));
+    }
+    data = myData;
+    symbol = metaData["2. Symbol"];
+  }
+
   DataPointDaily? getDataByDate(DateTime targetDate) => data[targetDate];
   List<DataPointDaily> asList() => data.values.toList();
+
+  CandleSeries<DataPointDaily, DateTime> getCartesianSeries() {
+    return CandleSeries<DataPointDaily, DateTime> (
+      dataSource: asList(),
+      enableSolidCandles: true,
+      xValueMapper: (DataPointDaily data, _) => data.date,
+      lowValueMapper: (DataPointDaily data, _) => data.low,
+      highValueMapper: (DataPointDaily data, _) => data.high,
+      openValueMapper: (DataPointDaily data, _) => data.open,
+      closeValueMapper: (DataPointDaily data, _) => data.close,
+    );
+  }
 }
 
 class DataPointDaily {
