@@ -1,7 +1,6 @@
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
 
-
 class TimeSeriesDaily {
   late final Map<DateTime, DataPointDaily> data;
   late final String symbol;
@@ -33,7 +32,7 @@ class TimeSeriesDaily {
   List<DataPointDaily> asList() => data.values.toList();
 
   CandleSeries<DataPointDaily, DateTime> getCartesianSeries() {
-    return CandleSeries<DataPointDaily, DateTime> (
+    return CandleSeries<DataPointDaily, DateTime>(
       dataSource: asList(),
       enableSolidCandles: true,
       xValueMapper: (DataPointDaily data, _) => data.date,

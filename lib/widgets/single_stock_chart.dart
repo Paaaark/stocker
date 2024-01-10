@@ -37,7 +37,7 @@ class _SingleStockChartState extends State<SingleStockChart> {
     setState(() {});
 
     // Fetch the data using APIService
-    dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType); 
+    dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
     dataSeries.add(tempHolder);
     cartesianSeries.add(dataSeries[dataSeries.length - 1].getCartesianSeries());
 
@@ -45,7 +45,6 @@ class _SingleStockChartState extends State<SingleStockChart> {
     isLoading = false;
     setState(() {});
   }
-
 
   @override
   void initState() {
@@ -78,7 +77,7 @@ class _SingleStockChartState extends State<SingleStockChart> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          "Single Stock Chart: ${symbol}",
+                          "Single Stock Chart: $symbol",
                           style: TextStyle(
                             fontSize: 16,
                             color:
@@ -119,25 +118,25 @@ class _SingleStockChartState extends State<SingleStockChart> {
                     ],
                   ),
                   Expanded(
-                    child: isLoading ?
-                    Text("Loading...") :
-                    SfCartesianChart(
-                      primaryXAxis: DateTimeAxis(
-                        autoScrollingMode: AutoScrollingMode.end,
-                      ),
-                      primaryYAxis: NumericAxis(
-                        visibleMinimum: 120,
-                        visibleMaximum: 180,
-                        anchorRangeToVisiblePoints: true,
-                      ),
-                      zoomPanBehavior: ZoomPanBehavior(
-                        enablePinching: true,
-                        zoomMode: ZoomMode.x,
-                        enablePanning: true,
-                        enableMouseWheelZooming: true,
-                      ),
-                      series: cartesianSeries,
-                    ),
+                    child: isLoading
+                        ? const Text("Loading...")
+                        : SfCartesianChart(
+                            primaryXAxis: DateTimeAxis(
+                              autoScrollingMode: AutoScrollingMode.end,
+                            ),
+                            primaryYAxis: NumericAxis(
+                              visibleMinimum: 120,
+                              visibleMaximum: 180,
+                              anchorRangeToVisiblePoints: true,
+                            ),
+                            zoomPanBehavior: ZoomPanBehavior(
+                              enablePinching: true,
+                              zoomMode: ZoomMode.x,
+                              enablePanning: true,
+                              enableMouseWheelZooming: true,
+                            ),
+                            series: cartesianSeries,
+                          ),
                   ),
                 ],
               ),

@@ -13,7 +13,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   List<Widget> gridChildren = [
-    SingleStockChart(),
+    const SingleStockChart(),
   ];
 
   void onPressAddChart() {
