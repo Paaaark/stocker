@@ -50,7 +50,7 @@ class APIService {
             "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&time_period=10&series_type=open&apikey=demo";
         break;
     }
-    print(url);
+    
     url = Uri.parse(url);
     final response = await http.get(url);
     if (response.statusCode == 200) {

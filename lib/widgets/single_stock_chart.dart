@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:stocker/models/time_series_daily.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
 
@@ -17,30 +16,43 @@ class _SingleStockChartState extends State<SingleStockChart> {
   bool showSettings = false;
   bool isLoading = true;
   String symbol = "IBM";
-  List<DataType> dataTypes = [
-    DataType.sma,
-  ];
   List<DataType> dataTypeOptions = [
     DataType.stockDaily,
+    DataType.sma,
+  ];
+  List<DataType> dataTypes = [
     DataType.sma,
   ];
   List<CartesianSeries> cartesianSeries = [];
   List<dynamic> dataSeries = [];
 
   void toggleShowSettings() {
+    /// When closing the settings, update the charts
+    if (showSettings == true) {
+      dataSeries.clear();
+      cartesianSeries.clear();
+      waitForData(dataTypes);
+    }
     showSettings = !showSettings;
     setState(() {});
   }
 
-  void waitForData(DataType dataType) async {
+  void addDataType() {
+    dataTypes.add(DataType.stockDaily);
+    setState(() {});
+  }
+
+  void waitForData(List<DataType> dataTypes) async {
     // Turn on loading mode to fetch the data
     isLoading = true;
     setState(() {});
 
     // Fetch the data using APIService
-    dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
-    dataSeries.add(tempHolder);
-    cartesianSeries.add(dataSeries[dataSeries.length - 1].getCartesianSeries());
+    for (DataType dataType in dataTypes) {
+      dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
+      dataSeries.add(tempHolder);
+      cartesianSeries.add(tempHolder.getCartesianSeries());
+    }
 
     // When loading is done, display it on the screen
     isLoading = false;
@@ -50,7 +62,20 @@ class _SingleStockChartState extends State<SingleStockChart> {
   @override
   void initState() {
     super.initState();
-    waitForData(DataType.sma);
+    waitForData(dataTypes);
+  }
+
+  DropdownButton _seriesDropdownButton(DataType selectedDataType, int index) {
+    return DropdownButton<DataType>(
+      value: selectedDataType,
+      items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
+        return DropdownMenuItem<DataType>(
+          value: value,
+          child: Text(APIService.dataTypeEnumToString[value]!),
+        );
+      }).toList(),
+      onChanged: (DataType? value) => {dataTypes[index] = value!},
+    );
   }
 
   @override
@@ -126,8 +151,8 @@ class _SingleStockChartState extends State<SingleStockChart> {
                               autoScrollingMode: AutoScrollingMode.end,
                             ),
                             primaryYAxis: NumericAxis(
-                              visibleMinimum: 120,
-                              visibleMaximum: 180,
+                              // visibleMinimum: 120,
+                              // visibleMaximum: 180,
                               anchorRangeToVisiblePoints: true,
                             ),
                             zoomPanBehavior: ZoomPanBehavior(
@@ -143,6 +168,8 @@ class _SingleStockChartState extends State<SingleStockChart> {
               ),
             ),
             if (showSettings)
+
+              /// #TODO: Use Animated Modal Barrier
               ModalBarrier(
                 color: Colors.black.withAlpha(200),
                 onDismiss: () {
@@ -155,12 +182,10 @@ class _SingleStockChartState extends State<SingleStockChart> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text("Series"),
-                    ...dataTypeOptions.map<Widget>((DataType selectedDataType) {
-                      return _seriesDropdownButton(
-                          selectedDataType, dataTypeOptions);
-                    }).toList(),
+                    for (var i = 0; i < dataTypes.length; i++)
+                      _seriesDropdownButton(dataTypes[i], i),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: addDataType,
                       icon: const Icon(Icons.add),
                     ),
                   ],
@@ -171,18 +196,4 @@ class _SingleStockChartState extends State<SingleStockChart> {
       ),
     );
   }
-}
-
-DropdownButton _seriesDropdownButton(
-    DataType selectedDataType, List<DataType> dataTypeOptions) {
-  return DropdownButton<DataType>(
-    value: selectedDataType,
-    items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
-      return DropdownMenuItem<DataType>(
-        value: value,
-        child: Text(APIService.dataTypeEnumToString[value]!),
-      );
-    }).toList(),
-    onChanged: (DataType? value) => {},
-  );
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:stocker/models/time_series_daily.dart';
-import 'package:stocker/services/api_service.dart';
 import 'package:stocker/widgets/single_stock_chart.dart';
 
 class MainScreen extends StatefulWidget {
