@@ -18,10 +18,11 @@ class _SingleStockChartState extends State<SingleStockChart> {
   bool isLoading = true;
   String symbol = "IBM";
   List<DataType> dataTypes = [
-    DataType.stock_daily,
+    DataType.sma,
   ];
   List<DataType> dataTypeOptions = [
-    DataType.stock_daily,
+    DataType.stockDaily,
+    DataType.sma,
   ];
   List<CartesianSeries> cartesianSeries = [];
   List<dynamic> dataSeries = [];
@@ -49,7 +50,7 @@ class _SingleStockChartState extends State<SingleStockChart> {
   @override
   void initState() {
     super.initState();
-    waitForData(DataType.stock_daily);
+    waitForData(DataType.sma);
   }
 
   @override

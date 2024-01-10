@@ -1,5 +1,4 @@
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:stocker/services/api_service.dart';
 
 class TimeSeriesDaily {
   late final Map<DateTime, DataPointDaily> data;
