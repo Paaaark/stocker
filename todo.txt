@@ -1,0 +1,33 @@
+General
+  Customize the arguments for technical indicators
+  Put RSI, OBV, STOCH beneath the chart
+  Add Volume as a bar in the chart
+  Add multiple charts to one screen
+  Toggle from candle, line, ohlc
+  Fullscreen function
+  Animate IsLoading
+  Ticker search
+  Better labels when zoomed in
+  Top winners & Top losers
+  Sentiment watcher (Possibly make them myself)
+  Fundamental data
+  Hosting through aws
+  Create RESTnet API
+
+technical_indicator_daily.dart
+  Add more indicators
+
+single_stock_chart.dart
+  Animate the ModalBarrier
+  Save Changes button
+
+
+Change the settings to plus icon
+Choose which technical indicators to add
+Open parameters for that indicator
+Save settings and add
+When clicked, open the settings again (onDataLabelTapped)
+Be able to change/delete
+Create a clickable legend on the top left, showing the parameters
+
+https://support.syncfusion.com/kb/article/9939/how-to-synchronize-panning-in-multiple-charts-sfcartesianchart

@@ -3,39 +3,37 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
 
-class SingleStockChart extends StatefulWidget {
-  const SingleStockChart({
+List<DataType> dataTypeCategoryOne = [
+  DataType.stockDaily,
+  DataType.sma,
+];
+
+class StockChart extends StatefulWidget {
+  const StockChart({
     super.key,
   });
 
   @override
-  State<SingleStockChart> createState() => _SingleStockChartState();
+  State<StockChart> createState() => _StockChartState();
 }
 
-class _SingleStockChartState extends State<SingleStockChart> {
+class _StockChartState extends State<StockChart> {
   bool showSettings = false;
   bool isLoading = true;
   String symbol = "IBM";
   List<DataType> dataTypeOptions = DataType.values;
   List<DataType> dataTypes = [
-    DataType.sma,
+    DataType.stockDaily,
   ];
-  List<CartesianSeries> cartesianSeries = [];
-  List<dynamic> dataSeries = [];
+  List<Expanded> charts = [];
+  List<List<CartesianSeries>> cartesianSeries = [[]];
+  List<List<dynamic>> dataSeries = [[]];
 
-  void toggleShowSettings() {
-    /// When closing the settings, update the charts
-    if (showSettings == true) {
-      dataSeries.clear();
-      cartesianSeries.clear();
-      waitForData(dataTypes);
-    }
-    showSettings = !showSettings;
-    setState(() {});
-  }
-
-  void addDataType() {
-    dataTypes.add(DataType.stockDaily);
+  @override
+  void initState() {
+    super.initState();
+    waitForData(dataTypes);
+    charts.add(_sfCartesianChart(cartesianSeries[0], 3));
     setState(() {});
   }
 
@@ -47,14 +45,38 @@ class _SingleStockChartState extends State<SingleStockChart> {
     // Fetch the data using APIService
     for (DataType dataType in dataTypes) {
       dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
-      dataSeries.add(tempHolder);
-      cartesianSeries.add(tempHolder.getCartesianSeries());
+      if (dataTypeCategoryOne.contains(dataType)) {
+        print("contains!");
+        dataSeries[0].add(tempHolder);
+        cartesianSeries[0].add(tempHolder.getCartesianSeries());
+        print(dataSeries);
+        print(cartesianSeries);
+      } else {
+        dataSeries.add([tempHolder]);
+        cartesianSeries.add([tempHolder.getCartesianSeries()]);
+        charts.add(_sfCartesianChart(cartesianSeries[cartesianSeries.length - 1], 1));
+      }
     }
 
     // When loading is done, display it on the screen
     isLoading = false;
     setState(() {});
   }
+
+  void toggleShowSettings() {
+    /// When closing the settings, update the charts
+    if (showSettings == true) {
+      waitForData(dataTypes);
+    }
+    showSettings = !showSettings;
+    setState(() {});
+  }
+
+  void addDataType() {
+    dataTypes.add(DataType.stockDaily);
+    setState(() {});
+  }
+
 
   void onSelectDataType(int index, DataType value) {
     setState(() {
@@ -63,29 +85,10 @@ class _SingleStockChartState extends State<SingleStockChart> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    waitForData(dataTypes);
-  }
-
-  DropdownButton _seriesDropdownButton(DataType selectedDataType, int index) {
-    return DropdownButton<DataType>(
-      value: selectedDataType,
-      items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
-        return DropdownMenuItem<DataType>(
-          value: value,
-          child: Text(APIService.dataTypeEnumToString[value]!),
-        );
-      }).toList(),
-      onChanged: (DataType? value) => {onSelectDataType(index, value!)},
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     return StaggeredGridTile.count(
       crossAxisCellCount: 2,
-      mainAxisCellCount: 1,
+      mainAxisCellCount: 1 + (charts.length - 1) * 0.33,
       child: Container(
         margin: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -146,27 +149,8 @@ class _SingleStockChartState extends State<SingleStockChart> {
                       ),
                     ],
                   ),
-                  Expanded(
-                    child: isLoading
-                        ? const Text("Loading...")
-                        : SfCartesianChart(
-                            primaryXAxis: DateTimeAxis(
-                              autoScrollingMode: AutoScrollingMode.end,
-                            ),
-                            primaryYAxis: NumericAxis(
-                              // visibleMinimum: 120,
-                              // visibleMaximum: 180,
-                              anchorRangeToVisiblePoints: true,
-                            ),
-                            zoomPanBehavior: ZoomPanBehavior(
-                              enablePinching: true,
-                              zoomMode: ZoomMode.x,
-                              enablePanning: true,
-                              enableMouseWheelZooming: true,
-                            ),
-                            series: cartesianSeries,
-                          ),
-                  ),
+                  if (isLoading) Text("Loading..."),
+                  if (!isLoading) ...charts,
                 ],
               ),
             ),
@@ -199,4 +183,40 @@ class _SingleStockChartState extends State<SingleStockChart> {
       ),
     );
   }
+
+  Expanded _sfCartesianChart(List<CartesianSeries> cartesianSeries, int _flex) {
+    return Expanded(
+      flex: _flex,
+      child: SfCartesianChart(
+        primaryXAxis: DateTimeAxis(
+          autoScrollingMode: AutoScrollingMode.end,
+        ),
+        primaryYAxis: NumericAxis(
+          visibleMinimum: 120,
+          visibleMaximum: 180,
+          anchorRangeToVisiblePoints: true,
+        ),
+        zoomPanBehavior: ZoomPanBehavior(
+          enablePinching: true,
+          zoomMode: ZoomMode.x,
+          enablePanning: true,
+          enableMouseWheelZooming: true,
+        ),
+        series: cartesianSeries,
+      )
+    );
+  }
+
+  DropdownButton _seriesDropdownButton(DataType selectedDataType, int index) {
+  return DropdownButton<DataType>(
+    value: selectedDataType,
+    items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
+      return DropdownMenuItem<DataType>(
+        value: value,
+        child: Text(APIService.dataTypeEnumToString[value]!),
+      );
+    }).toList(),
+    onChanged: (DataType? value) => {onSelectDataType(index, value!)},
+  );
+}
 }
