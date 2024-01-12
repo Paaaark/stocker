@@ -7,6 +7,7 @@ General
   Fullscreen function
   Animate IsLoading
   Ticker search
+  Prevent page from scrolling when the cursor is on the graph
   Better labels when zoomed in
   Top winners & Top losers
   Sentiment watcher (Possibly make them myself)

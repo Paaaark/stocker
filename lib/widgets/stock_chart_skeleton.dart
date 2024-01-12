@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:stocker/widgets/cartesian_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
 
@@ -8,16 +9,16 @@ List<DataType> dataTypeCategoryOne = [
   DataType.sma,
 ];
 
-class StockChart extends StatefulWidget {
-  const StockChart({
+class StockChartSkeleton extends StatefulWidget {
+  const StockChartSkeleton({
     super.key,
   });
 
   @override
-  State<StockChart> createState() => _StockChartState();
+  State<StockChartSkeleton> createState() => _StockChartSkeletonState();
 }
 
-class _StockChartState extends State<StockChart> {
+class _StockChartSkeletonState extends State<StockChartSkeleton> {
   bool showSettings = false;
   bool isLoading = true;
   String symbol = "IBM";
@@ -25,15 +26,24 @@ class _StockChartState extends State<StockChart> {
   List<DataType> dataTypes = [
     DataType.stockDaily,
   ];
-  List<Expanded> charts = [];
+  List<CartesianChart> charts = [];
   List<List<CartesianSeries>> cartesianSeries = [[]];
   List<List<dynamic>> dataSeries = [[]];
+
+  List<DateTimeAxisController> axisControllers = [];
 
   @override
   void initState() {
     super.initState();
     waitForData(dataTypes);
-    charts.add(_sfCartesianChart(cartesianSeries[0], 3));
+    charts.add(CartesianChart.createChart(
+      cartesianSeries[0],
+      3,
+      onZoom,
+      onCreateAxisController,
+      0,
+      1,
+    ));
     setState(() {});
   }
 
@@ -46,15 +56,19 @@ class _StockChartState extends State<StockChart> {
     for (DataType dataType in dataTypes) {
       dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
       if (dataTypeCategoryOne.contains(dataType)) {
-        print("contains!");
         dataSeries[0].add(tempHolder);
         cartesianSeries[0].add(tempHolder.getCartesianSeries());
-        print(dataSeries);
-        print(cartesianSeries);
       } else {
         dataSeries.add([tempHolder]);
         cartesianSeries.add([tempHolder.getCartesianSeries()]);
-        charts.add(_sfCartesianChart(cartesianSeries[cartesianSeries.length - 1], 1));
+        charts.add(CartesianChart.createChart(
+          cartesianSeries[cartesianSeries.length - 1],
+          1,
+          onZoom,
+          onCreateAxisController,
+          0,
+          1,
+        ));
       }
     }
 
@@ -77,11 +91,25 @@ class _StockChartState extends State<StockChart> {
     setState(() {});
   }
 
-
   void onSelectDataType(int index, DataType value) {
     setState(() {
       dataTypes[index] = value;
     });
+  }
+
+  // Synchronized zooming between all charts
+  void onZoom(double currentZoomPosition, double currentZoomFactor) {
+    for (DateTimeAxisController axisController in axisControllers) {
+      axisController.zoomPosition = currentZoomPosition;
+      axisController.zoomFactor = currentZoomFactor;
+    }
+    setState(() {});
+  }
+
+  // When a new chart is rendered, add its controller to the list
+  void onCreateAxisController(DateTimeAxisController axisController) {
+    axisControllers.add(axisController);
+    print("Axis Controller Added!");
   }
 
   @override
@@ -149,7 +177,7 @@ class _StockChartState extends State<StockChart> {
                       ),
                     ],
                   ),
-                  if (isLoading) Text("Loading..."),
+                  if (isLoading) const Text("Loading..."),
                   if (!isLoading) ...charts,
                 ],
               ),
@@ -184,39 +212,16 @@ class _StockChartState extends State<StockChart> {
     );
   }
 
-  Expanded _sfCartesianChart(List<CartesianSeries> cartesianSeries, int _flex) {
-    return Expanded(
-      flex: _flex,
-      child: SfCartesianChart(
-        primaryXAxis: DateTimeAxis(
-          autoScrollingMode: AutoScrollingMode.end,
-        ),
-        primaryYAxis: NumericAxis(
-          visibleMinimum: 120,
-          visibleMaximum: 180,
-          anchorRangeToVisiblePoints: true,
-        ),
-        zoomPanBehavior: ZoomPanBehavior(
-          enablePinching: true,
-          zoomMode: ZoomMode.x,
-          enablePanning: true,
-          enableMouseWheelZooming: true,
-        ),
-        series: cartesianSeries,
-      )
+  DropdownButton _seriesDropdownButton(DataType selectedDataType, int index) {
+    return DropdownButton<DataType>(
+      value: selectedDataType,
+      items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
+        return DropdownMenuItem<DataType>(
+          value: value,
+          child: Text(APIService.dataTypeEnumToString[value]!),
+        );
+      }).toList(),
+      onChanged: (DataType? value) => {onSelectDataType(index, value!)},
     );
   }
-
-  DropdownButton _seriesDropdownButton(DataType selectedDataType, int index) {
-  return DropdownButton<DataType>(
-    value: selectedDataType,
-    items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
-      return DropdownMenuItem<DataType>(
-        value: value,
-        child: Text(APIService.dataTypeEnumToString[value]!),
-      );
-    }).toList(),
-    onChanged: (DataType? value) => {onSelectDataType(index, value!)},
-  );
-}
 }
