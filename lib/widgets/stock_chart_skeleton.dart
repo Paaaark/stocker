@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:stocker/models/technical_indicator_daily.dart';
 import 'package:stocker/widgets/cartesian_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
@@ -8,6 +9,12 @@ List<DataType> dataTypeCategoryOne = [
   DataType.stockDaily,
   DataType.sma,
 ];
+
+Map<QueryParam, String> queryParamtoString = {
+  QueryParam.interval: "Interval",
+  QueryParam.timePeriod: "Time Period",
+  QueryParam.seriesType: "Series Type",
+};
 
 class StockChartSkeleton extends StatefulWidget {
   const StockChartSkeleton({
@@ -19,57 +26,57 @@ class StockChartSkeleton extends StatefulWidget {
 }
 
 class _StockChartSkeletonState extends State<StockChartSkeleton> {
-  bool showSettings = false;
+  bool showIndicatorOptions = false;
+  bool showIndicatorParameters = false;
   bool isLoading = true;
   String symbol = "IBM";
   List<DataType> dataTypeOptions = DataType.values;
-  List<DataType> dataTypes = [
-    DataType.stockDaily,
-  ];
+  List<DataType> dataTypes = [];
   List<CartesianChart> charts = [];
   List<List<CartesianSeries>> cartesianSeries = [[]];
   List<List<dynamic>> dataSeries = [[]];
+
+  List<Widget> indicatorParamsWidget = [];
 
   List<DateTimeAxisController> axisControllers = [];
 
   @override
   void initState() {
     super.initState();
-    waitForData(dataTypes);
-    charts.add(CartesianChart.createChart(
-      cartesianSeries[0],
-      3,
-      onZoom,
-      onCreateAxisController,
-      0,
-      1,
-    ));
+    addIndicator(DataType.stockDaily);
     setState(() {});
   }
 
-  void waitForData(List<DataType> dataTypes) async {
+  void addIndicator(DataType dataType) async {
     // Turn on loading mode to fetch the data
     isLoading = true;
+    showIndicatorOptions = false;
     setState(() {});
 
+    dataTypes.add(dataType);
     // Fetch the data using APIService
-    for (DataType dataType in dataTypes) {
-      dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
-      if (dataTypeCategoryOne.contains(dataType)) {
-        dataSeries[0].add(tempHolder);
-        cartesianSeries[0].add(tempHolder.getCartesianSeries());
+    dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
+    if (dataTypeCategoryOne.contains(dataType)) {
+      dataSeries[0].add(tempHolder);
+      cartesianSeries[0].add(tempHolder.getCartesianSeries());
+      CartesianChart temp = CartesianChart.createChart(cartesianSeries[0],
+          dataSeries[0], 3, onZoom, onCreateAxisController, 0);
+      if (charts.isEmpty) {
+        charts.add(temp);
       } else {
-        dataSeries.add([tempHolder]);
-        cartesianSeries.add([tempHolder.getCartesianSeries()]);
-        charts.add(CartesianChart.createChart(
-          cartesianSeries[cartesianSeries.length - 1],
-          1,
-          onZoom,
-          onCreateAxisController,
-          0,
-          1,
-        ));
+        charts[0] = temp;
       }
+    } else {
+      dataSeries.add([tempHolder]);
+      cartesianSeries.add([tempHolder.getCartesianSeries()]);
+      charts.add(CartesianChart.createChart(
+        cartesianSeries[cartesianSeries.length - 1],
+        dataSeries[cartesianSeries.length - 1],
+        1,
+        onZoom,
+        onCreateAxisController,
+        cartesianSeries.length - 1,
+      ));
     }
 
     // When loading is done, display it on the screen
@@ -78,24 +85,37 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   }
 
   void toggleShowSettings() {
-    /// When closing the settings, update the charts
-    if (showSettings == true) {
-      waitForData(dataTypes);
-    }
-    showSettings = !showSettings;
+    showIndicatorOptions = !showIndicatorOptions;
     setState(() {});
   }
 
-  void addDataType() {
-    dataTypes.add(DataType.stockDaily);
-    setState(() {});
-  }
-
-  void onSelectDataType(int index, DataType value) {
-    setState(() {
-      dataTypes[index] = value;
+  void toggleIndicatorParamsByDataType(DataType dataType) {
+    indicatorParamsWidget.clear();
+    TechnicalIndicatorDaily.getParamsByType(dataType).forEach((key, value) {
+      indicatorParamsWidget.add(
+        Row(children: [
+          Text(queryParamtoString[key]!),
+          TextFormField(
+            initialValue: value,
+            decoration: InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: Theme.of(context).highlightColor,
+            ),
+            style: const TextStyle(
+              fontSize: 14,
+            ),
+          ),
+        ]),
+      );
     });
+
+    showIndicatorOptions = false;
+    showIndicatorParameters = true;
+    setState(() {});
   }
+
+  void toggleIndicatorParamsByExistingSeries(dynamic dataSeries) {}
 
   // Synchronized zooming between all charts
   void onZoom(double currentZoomPosition, double currentZoomFactor) {
@@ -107,9 +127,13 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   }
 
   // When a new chart is rendered, add its controller to the list
-  void onCreateAxisController(DateTimeAxisController axisController) {
-    axisControllers.add(axisController);
-    print("Axis Controller Added!");
+  void onCreateAxisController(
+      DateTimeAxisController axisController, int index) {
+    if (index < axisControllers.length) {
+      axisControllers[index] = axisController;
+    } else {
+      axisControllers.add(axisController);
+    }
   }
 
   @override
@@ -171,7 +195,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                           onPressed: () => {
                             toggleShowSettings(),
                           },
-                          icon: const Icon(Icons.settings),
+                          icon: const Icon(Icons.add),
                           color: Theme.of(context).primaryColorLight,
                         ),
                       ),
@@ -182,7 +206,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                 ],
               ),
             ),
-            if (showSettings)
+            if (showIndicatorOptions || showIndicatorParameters)
 
               /// #TODO: Use Animated Modal Barrier
               ModalBarrier(
@@ -191,19 +215,23 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                   toggleShowSettings();
                 },
               ),
-            if (showSettings)
+            if (showIndicatorOptions)
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Series"),
-                    for (var i = 0; i < dataTypes.length; i++)
-                      _seriesDropdownButton(dataTypes[i], i),
-                    IconButton(
-                      onPressed: addDataType,
-                      icon: const Icon(Icons.add),
-                    ),
+                    const Text("Add a technical indicator"),
+                    for (var dataType in dataTypeOptions)
+                      _indicatorOptionButton(
+                          dataType, toggleIndicatorParamsByDataType),
                   ],
+                ),
+              ),
+            if (showIndicatorParameters)
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: indicatorParamsWidget,
                 ),
               )
           ],
@@ -212,16 +240,11 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     );
   }
 
-  DropdownButton _seriesDropdownButton(DataType selectedDataType, int index) {
-    return DropdownButton<DataType>(
-      value: selectedDataType,
-      items: dataTypeOptions.map<DropdownMenuItem<DataType>>((DataType value) {
-        return DropdownMenuItem<DataType>(
-          value: value,
-          child: Text(APIService.dataTypeEnumToString[value]!),
-        );
-      }).toList(),
-      onChanged: (DataType? value) => {onSelectDataType(index, value!)},
+  TextButton _indicatorOptionButton(
+      DataType dataType, Function toggleIndicatorParams) {
+    return TextButton(
+      onPressed: () => toggleIndicatorParams(dataType),
+      child: Text(APIService.dataTypeEnumToString[dataType]!),
     );
   }
 }

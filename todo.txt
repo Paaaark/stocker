@@ -1,7 +1,6 @@
 General
   Customize the arguments for technical indicators
-  Put RSI, OBV, STOCH beneath the chart
-  Add Volume as a bar in the chart
+    Make chips clickable
   Add multiple charts to one screen
   Toggle from candle, line, ohlc
   Fullscreen function
@@ -14,6 +13,7 @@ General
   Fundamental data
   Hosting through aws
   Create RESTnet API
+  Add Volume as a bar in the chart
 
 technical_indicator_daily.dart
   Add more indicators
@@ -22,13 +22,13 @@ single_stock_chart.dart
   Animate the ModalBarrier
   Save Changes button
 
+stock_chart_skeleton.dart
+  Design the buttons in showIndicatorOptions
 
-Change the settings to plus icon
-Choose which technical indicators to add
-Open parameters for that indicator
-Save settings and add
-When clicked, open the settings again (onDataLabelTapped)
-Be able to change/delete
-Create a clickable legend on the top left, showing the parameters
 
-https://support.syncfusion.com/kb/article/9939/how-to-synchronize-panning-in-multiple-charts-sfcartesianchart
+Done
+  Put RSI, OBV, STOCH beneath the chart
+  Add Small Legend as a tag on the top left
+    Make the font smaller
+    Put some margin on horizontal lines
+    Finish setting them for RSI, OBV, etc

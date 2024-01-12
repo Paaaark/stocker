@@ -41,6 +41,8 @@ class TimeSeriesDaily {
       closeValueMapper: (DataPointDaily data, _) => data.close,
     );
   }
+
+  String getSummary() => symbol;
 }
 
 class DataPointDaily {

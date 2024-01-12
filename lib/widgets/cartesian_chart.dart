@@ -3,19 +3,14 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class CartesianChart extends StatefulWidget {
   final List<CartesianSeries> cartesianSeries;
+  final List<dynamic> dataSeries;
   final int flex;
   final Function onZoom;
   final Function onCreateAxisController;
-  final double initialZoomPosition;
-  final double initialZoomFactor;
+  final int chartIndex;
 
-  const CartesianChart.createChart(
-      this.cartesianSeries,
-      this.flex,
-      this.onZoom,
-      this.onCreateAxisController,
-      this.initialZoomPosition,
-      this.initialZoomFactor,
+  const CartesianChart.createChart(this.cartesianSeries, this.dataSeries,
+      this.flex, this.onZoom, this.onCreateAxisController, this.chartIndex,
       {super.key});
 
   @override
@@ -26,17 +21,18 @@ class _CartesianChartState extends State<CartesianChart> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-        flex: widget.flex,
-        child: SfCartesianChart(
+      flex: widget.flex,
+      child: Stack(children: [
+        SfCartesianChart(
           primaryXAxis: DateTimeAxis(
             initialVisibleMinimum: DateTime.parse("2023-07-01"),
             initialVisibleMaximum: DateTime.parse("2024-01-10"),
-            initialZoomPosition: widget.initialZoomPosition,
-            initialZoomFactor: widget.initialZoomFactor,
+            initialZoomPosition: 0,
+            initialZoomFactor: 1,
             autoScrollingMode: AutoScrollingMode.end,
             name: 'primaryXAxis',
             onRendererCreated: (DateTimeAxisController controller) {
-              widget.onCreateAxisController(controller);
+              widget.onCreateAxisController(controller, widget.chartIndex);
             },
           ),
           primaryYAxis: const NumericAxis(
@@ -53,7 +49,31 @@ class _CartesianChartState extends State<CartesianChart> {
               widget.onZoom(args.currentZoomPosition, args.currentZoomFactor);
             }
           },
+          onZooming: (ZoomPanArgs args) {
+            if (args.axis?.name == 'primaryXAxis') {
+              widget.onZoom(args.currentZoomPosition, args.currentZoomFactor);
+            }
+          },
           series: widget.cartesianSeries,
-        ));
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 45, vertical: 11),
+          child: Row(
+            children: [
+              for (dynamic series in widget.dataSeries)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Chip(
+                    label: Text(series.getSummary()),
+                    labelStyle: const TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ]),
+    );
   }
 }

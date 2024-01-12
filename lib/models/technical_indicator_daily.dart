@@ -20,19 +20,27 @@ Map<String, DataType> indicatorToEnum = {
   "Stochastic (STOCH)": DataType.stoch,
 };
 
+Map<QueryParam, String> defaultParams = {
+  QueryParam.interval: "weekly",
+  QueryParam.timePeriod: "10",
+  QueryParam.seriesType: "open",
+};
+
 class TechnicalIndicatorDaily {
   late final DataType dataType;
   late final String symbol;
   late final Map<DateTime, DateValuePair> data;
+  late final Map<String, dynamic> metaData;
+  String interval = "daily";
+  String timePeriod = "10";
+  String seriesType = "open";
 
   TechnicalIndicatorDaily.fromJSON(Map<String, dynamic> json) {
     Map<DateTime, DateValuePair> myData = {};
-    Map<String, dynamic> metaData = json['Meta Data'];
+    metaData = json['Meta Data'];
     String indicator = metaData['2: Indicator'];
     Map<String, dynamic> indicatorData = json[indicatorToHeading[indicator]];
     final List<String> fetchedDates = indicatorData.keys.toList();
-
-    print(indicatorData);
 
     for (var date in fetchedDates) {
       myData[DateTime.parse(date)] =
@@ -52,6 +60,60 @@ class TechnicalIndicatorDaily {
       xValueMapper: (DateValuePair data, _) => data.date,
       yValueMapper: (DateValuePair data, _) => data.value,
     );
+  }
+
+  String getSummary() {
+    switch (dataType) {
+      case DataType.sma:
+        return "SMA(${metaData["4: Interval"]}, ${metaData["5: Time Period"]}, ${metaData["6: Series Type"]})";
+      case DataType.rsi:
+        return "RSI(${metaData["4: Interval"]}, ${metaData["5: Time Period"]}, ${metaData["6: Series Type"]})";
+      case DataType.obv:
+        return "OBV(${metaData["4: Interval"]})";
+      case DataType.stoch:
+        return "STOCH(${metaData["4: Interval"]}, ${metaData["5.1: FastK Period"]}, ${metaData["5.2: SlowK Period"]}, ${metaData["5.3: SlowK MA Type"]}, ${metaData["5.4: SlowD Period"]}, ${metaData["5.5: SlowD MA Type"]})";
+    }
+    return "";
+  }
+
+  Map<QueryParam, String> getParams() {
+    switch (dataType) {
+      case DataType.sma:
+      case DataType.rsi:
+        return {
+          QueryParam.interval: metaData["4: Interval"],
+          QueryParam.timePeriod: metaData["5: Time Period"],
+          QueryParam.seriesType: metaData["6: Series Type"],
+        };
+      case DataType.obv:
+        return {
+          QueryParam.interval: metaData["4: Interval"],
+        };
+    }
+    return {};
+  }
+
+  static Map<QueryParam, String> filterParam(List<QueryParam> targetKeys) {
+    List<String> targetValues = [];
+    for (QueryParam key in targetKeys) {
+      targetValues.add(defaultParams[key]!);
+    }
+    return Map.fromIterables(targetKeys, targetValues);
+  }
+
+  static Map<QueryParam, String> getParamsByType(DataType dataType) {
+    switch (dataType) {
+      case DataType.sma:
+      case DataType.rsi:
+        return filterParam([
+          QueryParam.interval,
+          QueryParam.timePeriod,
+          QueryParam.seriesType
+        ]);
+      case DataType.obv:
+        return filterParam([QueryParam.interval]);
+    }
+    return {};
   }
 }
 

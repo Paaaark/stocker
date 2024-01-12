@@ -14,6 +14,12 @@ enum DataType {
   stoch,
 }
 
+enum QueryParam {
+  interval,
+  timePeriod,
+  seriesType,
+}
+
 class APIService {
   static const String baseUrl = "https://www.alphavantage.co/query";
   static const String timeSeriesDaily = "function=TIME_SERIES_DAILY";
@@ -43,8 +49,10 @@ class APIService {
   }
 
   /// Returns a future of data of the desired symbol and type
-  static Future<dynamic> fetchDataByType(
-      String symbol, DataType dataType) async {
+  static Future<dynamic> fetchDataByType(String symbol, DataType dataType,
+      {String interval = "weekly",
+      String timePeriod = "10",
+      String seriesType = "open"}) async {
     dynamic url;
     switch (dataType) {
       case DataType.stockDaily:
@@ -53,7 +61,7 @@ class APIService {
         break;
       case DataType.sma:
         url =
-            "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&time_period=10&series_type=open&apikey=demo";
+            "$baseUrl?function=${dataTypeEnumToString[dataType]}&symbol=$symbol&interval=$interval&time_period=$timePeriod&series_type=$seriesType&apikey=demo";
         break;
       case DataType.rsi:
         url =
