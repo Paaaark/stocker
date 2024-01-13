@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:stocker/models/technical_indicator_daily.dart';
+import 'package:stocker/models/data_type_helper.dart';
+import 'package:stocker/models/query_params.dart';
 import 'package:stocker/widgets/cartesian_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
@@ -86,27 +87,41 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   void toggleShowSettings() {
     showIndicatorOptions = !showIndicatorOptions;
+    showIndicatorParameters = false;
     setState(() {});
   }
 
   void toggleIndicatorParamsByDataType(DataType dataType) {
     indicatorParamsWidget.clear();
-    TechnicalIndicatorDaily.getParamsByType(dataType).forEach((key, value) {
+    indicatorParamsWidget.add(
+      Text(
+        DataTypeHelper.dataTypeEnumToString[dataType]!,
+        style: const TextStyle(
+          fontSize: 16,
+        ),
+      ),
+    );
+    QueryParamsHelper.getParamsByType(dataType).forEach((key, value) {
       indicatorParamsWidget.add(
-        Row(children: [
-          Text(queryParamtoString[key]!),
-          TextFormField(
-            initialValue: value,
-            decoration: InputDecoration(
-              isDense: true,
-              filled: true,
-              fillColor: Theme.of(context).highlightColor,
-            ),
-            style: const TextStyle(
-              fontSize: 14,
-            ),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 150,
+                child: Text(
+                  queryParamtoString[key]!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              QueryParamsHelper.getParamInputWidgetByType(key),
+            ],
           ),
-        ]),
+        ),
       );
     });
 
@@ -228,12 +243,10 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                 ),
               ),
             if (showIndicatorParameters)
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: indicatorParamsWidget,
-                ),
-              )
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: indicatorParamsWidget,
+              ),
           ],
         ),
       ),
@@ -244,7 +257,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       DataType dataType, Function toggleIndicatorParams) {
     return TextButton(
       onPressed: () => toggleIndicatorParams(dataType),
-      child: Text(APIService.dataTypeEnumToString[dataType]!),
+      child: Text(DataTypeHelper.dataTypeEnumToString[dataType]!),
     );
   }
 }

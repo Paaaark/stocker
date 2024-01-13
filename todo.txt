@@ -1,5 +1,6 @@
 General
   Customize the arguments for technical indicators
+    Continue working on dropdownMenu and TextInput on query_param.dart
     Make chips clickable
   Add multiple charts to one screen
   Toggle from candle, line, ohlc

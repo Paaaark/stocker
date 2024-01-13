@@ -1,3 +1,5 @@
+import 'package:stocker/models/data_type_helper.dart';
+import 'package:stocker/models/query_params.dart';
 import 'package:stocker/services/api_service.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -18,12 +20,6 @@ Map<String, DataType> indicatorToEnum = {
   "Relative Strength Index (RSI)": DataType.rsi,
   "On Balance Volume (OBV)": DataType.obv,
   "Stochastic (STOCH)": DataType.stoch,
-};
-
-Map<QueryParam, String> defaultParams = {
-  QueryParam.interval: "weekly",
-  QueryParam.timePeriod: "10",
-  QueryParam.seriesType: "open",
 };
 
 class TechnicalIndicatorDaily {
@@ -89,29 +85,6 @@ class TechnicalIndicatorDaily {
         return {
           QueryParam.interval: metaData["4: Interval"],
         };
-    }
-    return {};
-  }
-
-  static Map<QueryParam, String> filterParam(List<QueryParam> targetKeys) {
-    List<String> targetValues = [];
-    for (QueryParam key in targetKeys) {
-      targetValues.add(defaultParams[key]!);
-    }
-    return Map.fromIterables(targetKeys, targetValues);
-  }
-
-  static Map<QueryParam, String> getParamsByType(DataType dataType) {
-    switch (dataType) {
-      case DataType.sma:
-      case DataType.rsi:
-        return filterParam([
-          QueryParam.interval,
-          QueryParam.timePeriod,
-          QueryParam.seriesType
-        ]);
-      case DataType.obv:
-        return filterParam([QueryParam.interval]);
     }
     return {};
   }
