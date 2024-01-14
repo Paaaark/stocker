@@ -192,19 +192,29 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       }
       symbol = newSymbol;
     } catch (e) {
-      symbolNotFound = true;
-      bestMatchWidgets.add(Text("Couldn't find $newSymbol. Did you mean..."));
-      List<Map<String, String>> bestMatches =
-          await APIService.getBestMatchingSymbols(newSymbol);
-      for (Map<String, String> bestMatch in bestMatches) {
-        bestMatchWidgets.add(TextButton(
-            onPressed: () {},
-            child: Text(
-                "${bestMatch["name"]} (${bestMatch["symbol"]}), ${bestMatch["region"]}")));
-      }
+      await symbolNotFoundFunction(newSymbol);
     }
 
     setState(() => isLoading = false);
+  }
+
+  Future<void> symbolNotFoundFunction(String newSymbol) async {
+    bestMatchWidgets.clear();
+
+    symbolNotFound = true;
+    bestMatchWidgets.add(Text("Couldn't find $newSymbol. Did you mean..."));
+
+    List<Map<String, String>> bestMatches =
+        await APIService.getBestMatchingSymbols(newSymbol);
+    for (Map<String, String> bestMatch in bestMatches) {
+      bestMatchWidgets.add(TextButton(
+          onPressed: () {
+            symbolNotFound = false;
+            refetchAllData(bestMatch["symbol"]!);
+          },
+          child: Text(
+              "${bestMatch["name"]} (${bestMatch["symbol"]}), ${bestMatch["region"]}")));
+    }
   }
 
   void toggleIndicatorParamsByExistingSeries(dynamic dataSeries) {}
@@ -312,7 +322,11 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                         ],
                       ),
                     )
-                  : Column(children: bestMatchWidgets),
+                  : Center(
+                      child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: bestMatchWidgets,
+                    )),
               if (showIndicatorOptions || showIndicatorParameters)
 
                 /// #TODO: Use Animated Modal Barrier
