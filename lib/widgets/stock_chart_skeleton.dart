@@ -32,7 +32,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   bool showIndicatorOptions = false;
   bool showIndicatorParameters = false;
   bool isLoading = true;
+  bool symbolNotFound = false;
   String symbol = "IBM";
+
   List<DataType> dataTypeOptions = DataType.values;
   List<DataType> dataTypes = [];
   List<CartesianChart> charts = [];
@@ -40,6 +42,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   List<Widget> indicatorParamsWidget = [];
   Map<QueryParam, String> indicatorParamsInput = {};
+
+  List<Widget> bestMatchWidgets = [];
 
   List<DateTimeAxisController> axisControllers = [];
 
@@ -173,18 +177,33 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   void refetchAllData(String newSymbol) async {
     setState(() => isLoading = true);
-    dataSeries = await APIService.refetchAllData(dataSeries, newSymbol);
 
-    for (var i = 0; i < charts.length; i++) {
-      charts[i] = CartesianChart.createChart(
-        dataSeries[i],
-        i == 0 ? 3 : 1,
-        onZoom,
-        onCreateAxisController,
-        0,
-      );
+    try {
+      dataSeries = await APIService.refetchAllData(dataSeries, newSymbol);
+
+      for (var i = 0; i < charts.length; i++) {
+        charts[i] = CartesianChart.createChart(
+          dataSeries[i],
+          i == 0 ? 3 : 1,
+          onZoom,
+          onCreateAxisController,
+          0,
+        );
+      }
+      symbol = newSymbol;
+    } catch (e) {
+      symbolNotFound = true;
+      bestMatchWidgets.add(Text("Couldn't find $newSymbol. Did you mean..."));
+      List<Map<String, String>> bestMatches =
+          await APIService.getBestMatchingSymbols(newSymbol);
+      for (Map<String, String> bestMatch in bestMatches) {
+        bestMatchWidgets.add(TextButton(
+            onPressed: () {},
+            child: Text(
+                "${bestMatch["name"]} (${bestMatch["symbol"]}), ${bestMatch["region"]}")));
+      }
     }
-    symbol = newSymbol;
+
     setState(() => isLoading = false);
   }
 
@@ -212,111 +231,117 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   @override
   Widget build(BuildContext context) {
     return StaggeredGridTile.count(
-      crossAxisCellCount: 2,
-      mainAxisCellCount: 1 + (charts.length - 1) * 0.33,
-      child: Container(
-        margin: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.all(Radius.circular(10)),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisCellCount: 2,
+        mainAxisCellCount: 1 + (charts.length - 1) * 0.33,
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
+          ),
+          clipBehavior: Clip.hardEdge,
+          child: Stack(
+            children: [
+              !symbolNotFound
+                  ? Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  "Stock Chart: $symbol",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .displayLarge
+                                        ?.color,
+                                  ),
+                                ),
+                              ),
+                              const Expanded(
+                                flex: 2,
+                                child: SizedBox(),
+                              ),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 34,
+                                  child: TextField(
+                                    controller: _tickerFieldController,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      filled: true,
+                                      fillColor:
+                                          Theme.of(context).highlightColor,
+                                      hintText: 'Ticker & Enter...',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                    ),
+                                    onSubmitted: ((value) {
+                                      refetchAllData(value);
+                                      setState(() {
+                                        _tickerFieldController.clear();
+                                      });
+                                    }),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 3),
+                                child: IconButton(
+                                  onPressed: () => {
+                                    toggleShowSettings(),
+                                  },
+                                  icon: const Icon(Icons.add),
+                                  color: Theme.of(context).primaryColorLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (isLoading)
+                            const Expanded(
+                                child: Center(child: LoadingSpinner())),
+                          if (!isLoading) ...charts,
+                        ],
+                      ),
+                    )
+                  : Column(children: bestMatchWidgets),
+              if (showIndicatorOptions || showIndicatorParameters)
+
+                /// #TODO: Use Animated Modal Barrier
+                ModalBarrier(
+                  color: Colors.black.withAlpha(200),
+                  onDismiss: () {
+                    toggleShowSettings();
+                  },
+                ),
+              if (showIndicatorOptions)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Stock Chart: $symbol",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.displayLarge?.color,
-                          ),
-                        ),
-                      ),
-                      const Expanded(
-                        flex: 2,
-                        child: SizedBox(),
-                      ),
-                      Expanded(
-                        child: SizedBox(
-                          height: 34,
-                          child: TextField(
-                            controller: _tickerFieldController,
-                            decoration: InputDecoration(
-                              isDense: true,
-                              filled: true,
-                              fillColor: Theme.of(context).highlightColor,
-                              hintText: 'Ticker & Enter...',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 14,
-                            ),
-                            onSubmitted: ((value) {
-                              refetchAllData(value);
-                              setState(() {
-                                _tickerFieldController.clear();
-                              });
-                            }),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        child: IconButton(
-                          onPressed: () => {
-                            toggleShowSettings(),
-                          },
-                          icon: const Icon(Icons.add),
-                          color: Theme.of(context).primaryColorLight,
-                        ),
-                      ),
+                      const Text("Add a technical indicator"),
+                      for (var dataType in dataTypeOptions)
+                        _indicatorOptionButton(
+                            dataType, toggleIndicatorParamsByDataType),
                     ],
                   ),
-                  if (isLoading)
-                    const Expanded(child: Center(child: LoadingSpinner())),
-                  if (!isLoading) ...charts,
-                ],
-              ),
-            ),
-            if (showIndicatorOptions || showIndicatorParameters)
-
-              /// #TODO: Use Animated Modal Barrier
-              ModalBarrier(
-                color: Colors.black.withAlpha(200),
-                onDismiss: () {
-                  toggleShowSettings();
-                },
-              ),
-            if (showIndicatorOptions)
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Add a technical indicator"),
-                    for (var dataType in dataTypeOptions)
-                      _indicatorOptionButton(
-                          dataType, toggleIndicatorParamsByDataType),
-                  ],
                 ),
-              ),
-            if (showIndicatorParameters)
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: indicatorParamsWidget,
-              ),
-          ],
-        ),
-      ),
-    );
+              if (showIndicatorParameters)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: indicatorParamsWidget,
+                ),
+            ],
+          ),
+        ));
   }
 
   TextButton _indicatorOptionButton(

@@ -1,8 +1,11 @@
 General
+  Ticker search when wrong ticker is entered
+  SCROLLLLLLLLLL
   Make chips clickable
   Add multiple charts to one screen
   Toggle from candle, line, ohlc
   Fullscreen function
+  Dim the chart in (for aesthetic purpose)
   Prevent page from scrolling when the cursor is on the graph
   Better labels when zoomed in
   Top winners & Top losers

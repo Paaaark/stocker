@@ -63,6 +63,10 @@ class APIService {
 
       print(fetchedData);
 
+      if (fetchedData.containsKey("Error Message")) {
+        throw Exception();
+      }
+
       if (dataType == DataType.stockDaily) {
         return TimeSeriesDaily.fromJSON(fetchedData);
       }
@@ -79,12 +83,40 @@ class APIService {
     for (List<DataModel> row in currentData) {
       List<DataModel> newRow = [];
       for (dynamic item in row) {
-        newRow.add(
-            await fetchDataByType(newSymbol, item.dataType, item.getParams()));
+        try {
+          newRow.add(await fetchDataByType(
+              newSymbol, item.dataType, item.getParams()));
+        } catch (e) {
+          rethrow;
+        }
       }
       newData.add(newRow);
     }
 
     return newData;
+  }
+
+  static Future<List<Map<String, String>>> getBestMatchingSymbols(
+      String target) async {
+    List<Map<String, String>> bestMatches = [];
+
+    Uri url = Uri.parse(
+        "$baseUrl?function=SYMBOL_SEARCH&keywords=$target&apikey=$API_KEY");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> fetchedData = jsonDecode(response.body);
+      print(fetchedData);
+      for (Map<String, dynamic> bestMatch in fetchedData["bestMatches"]) {
+        Map<String, String> match = {
+          "symbol": bestMatch["1. symbol"],
+          "name": bestMatch["2. name"],
+          "region": bestMatch["4. region"],
+        };
+
+        bestMatches.add(match);
+      }
+    }
+
+    return bestMatches;
   }
 }

@@ -10,10 +10,11 @@ class CartesianChart extends StatefulWidget {
   final Function onCreateAxisController;
   final int chartIndex;
 
-  CartesianChart.createChart(this.dataSeries,
-      this.flex, this.onZoom, this.onCreateAxisController, this.chartIndex,
-      {super.key}):
-      cartesianSeries = dataSeries.map<CartesianSeries>((entry) => entry.getCartesianSeries()).toList();
+  CartesianChart.createChart(this.dataSeries, this.flex, this.onZoom,
+      this.onCreateAxisController, this.chartIndex, {super.key})
+      : cartesianSeries = dataSeries
+            .map<CartesianSeries>((entry) => entry.getCartesianSeries())
+            .toList();
 
   @override
   State<CartesianChart> createState() => _CartesianChartState();
