@@ -30,11 +30,11 @@ class QueryParamsHelper {
     return {};
   }
 
-  static Widget getParamInputWidgetByType(QueryParam param) {
+  static Widget getParamInputWidgetByType(QueryParam param, Function update) {
     switch (param) {
       case QueryParam.interval:
-        return const _DropdownMenu(
-          items: [
+        return _DropdownMenu(
+          items: const [
             "1min",
             "5min",
             "15min",
@@ -44,16 +44,26 @@ class QueryParamsHelper {
             "weekly",
             "monthly"
           ],
+          thisQueryParam: param,
+          update: update,
         );
       case QueryParam.seriesType:
-        return const _DropdownMenu(items: [
-          'open',
-          'close',
-          'high',
-          'low',
-        ]);
+        return _DropdownMenu(
+          items: const [
+            'open',
+            'close',
+            'high',
+            'low',
+          ],
+          thisQueryParam: param,
+          update: update,
+        );
       case QueryParam.timePeriod:
-        return _TextInput(initialValue: "10");
+        return _TextInput(
+          initialValue: "10",
+          thisQueryParam: param,
+          update: update,
+        );
     }
 
     return const Text("...");
@@ -70,27 +80,36 @@ class QueryParamsHelper {
 
 class _DropdownMenu extends StatefulWidget {
   final List<String> items;
-  const _DropdownMenu({required this.items, super.key});
+  final QueryParam thisQueryParam;
+  final Function update;
+  const _DropdownMenu(
+      {required this.items,
+      required this.thisQueryParam,
+      required this.update,
+      super.key});
 
   @override
   State<_DropdownMenu> createState() => __DropdownMenuState();
 }
 
 class __DropdownMenuState extends State<_DropdownMenu> {
-  late String selectedColor;
+  late String selectedItem;
   @override
   void initState() {
-    selectedColor = widget.items[0];
+    selectedItem = widget.items[0];
+    widget.update(widget.thisQueryParam, (value) => selectedItem,
+        ifAbsent: () => selectedItem);
   }
 
   @override
   Widget build(BuildContext context) {
     return DropdownMenu(
-      initialSelection: widget.items[0],
+      initialSelection: selectedItem,
       width: 110,
       onSelected: (String? item) {
         setState(() {
-          selectedColor = item!;
+          selectedItem = item!;
+          widget.update(widget.thisQueryParam, (value) => selectedItem);
         });
       },
       textStyle: const TextStyle(fontSize: 14),
@@ -114,7 +133,13 @@ class __DropdownMenuState extends State<_DropdownMenu> {
 
 class _TextInput extends StatefulWidget {
   String initialValue;
-  _TextInput({required this.initialValue, super.key});
+  QueryParam thisQueryParam;
+  Function update;
+  _TextInput(
+      {required this.initialValue,
+      required this.thisQueryParam,
+      required this.update,
+      super.key});
 
   @override
   State<_TextInput> createState() => __TextInputState();
@@ -122,11 +147,20 @@ class _TextInput extends StatefulWidget {
 
 class __TextInputState extends State<_TextInput> {
   @override
+  void initState() {
+    widget.update(widget.thisQueryParam, (value) => widget.initialValue,
+        ifAbsent: () => widget.initialValue);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 110,
       child: TextFormField(
         initialValue: widget.initialValue,
+        onChanged: (text) => {
+          widget.update(widget.thisQueryParam, (value) => text),
+        },
         decoration: InputDecoration(
           isDense: true,
           filled: true,

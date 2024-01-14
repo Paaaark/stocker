@@ -38,6 +38,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   List<List<dynamic>> dataSeries = [[]];
 
   List<Widget> indicatorParamsWidget = [];
+  Map<QueryParam, String> indicatorParamsInput = {};
 
   List<DateTimeAxisController> axisControllers = [];
 
@@ -93,6 +94,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   void toggleIndicatorParamsByDataType(DataType dataType) {
     indicatorParamsWidget.clear();
+    indicatorParamsInput.clear();
+
+    /// Add the top text showing the dataType
     indicatorParamsWidget.add(
       Text(
         DataTypeHelper.dataTypeEnumToString[dataType]!,
@@ -101,6 +105,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
         ),
       ),
     );
+
+    /// Add an option for each QueryParam
     QueryParamsHelper.getParamsByType(dataType).forEach((key, value) {
       indicatorParamsWidget.add(
         Container(
@@ -118,12 +124,42 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                   ),
                 ),
               ),
-              QueryParamsHelper.getParamInputWidgetByType(key),
+              QueryParamsHelper.getParamInputWidgetByType(
+                  key, indicatorParamsInput.update),
             ],
           ),
         ),
       );
     });
+
+    /// Add the bottom confirm buttons
+    indicatorParamsWidget.add(Container(
+      margin: const EdgeInsets.symmetric(vertical: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton(
+            onPressed: () {},
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).highlightColor,
+            ),
+            child: const Text("Cancel"),
+          ),
+          const SizedBox(width: 50),
+          TextButton(
+            onPressed: () {
+              print(indicatorParamsInput);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).highlightColor,
+            ),
+            child: const Text("Confirm and Add"),
+          ),
+        ],
+      ),
+    ));
 
     showIndicatorOptions = false;
     showIndicatorParameters = true;
