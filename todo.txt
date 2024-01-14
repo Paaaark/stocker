@@ -1,11 +1,8 @@
 General
-  Ticker search
-    Continue working on api_service.dart to fetch new_data
   Make chips clickable
   Add multiple charts to one screen
   Toggle from candle, line, ohlc
   Fullscreen function
-  Animate IsLoading
   Prevent page from scrolling when the cursor is on the graph
   Better labels when zoomed in
   Top winners & Top losers
@@ -34,3 +31,5 @@ Done
     Finish setting them for RSI, OBV, etc
   Customize the arguments for technical indicators
     Continue working on dropdownMenu and TextInput on query_param.dart
+  Ticker search
+  Animate IsLoading

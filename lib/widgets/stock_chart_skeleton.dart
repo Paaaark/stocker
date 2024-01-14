@@ -4,6 +4,7 @@ import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:stocker/widgets/cartesian_chart.dart';
+import 'package:stocker/widgets/loading_spinner.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
 
@@ -280,7 +281,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                       ),
                     ],
                   ),
-                  if (isLoading) const Text("Loading..."),
+                  if (isLoading)
+                    const Expanded(child: Center(child: LoadingSpinner())),
                   if (!isLoading) ...charts,
                 ],
               ),
