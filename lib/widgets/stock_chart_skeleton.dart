@@ -45,11 +45,11 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   @override
   void initState() {
     super.initState();
-    addIndicator(DataType.stockDaily);
+    addIndicator(DataType.stockDaily, {});
     setState(() {});
   }
 
-  void addIndicator(DataType dataType) async {
+  void addIndicator(DataType dataType, Map<QueryParam, String> params) async {
     // Turn on loading mode to fetch the data
     isLoading = true;
     showIndicatorOptions = false;
@@ -57,7 +57,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
     dataTypes.add(dataType);
     // Fetch the data using APIService
-    dynamic tempHolder = await APIService.fetchDataByType(symbol, dataType);
+    dynamic tempHolder =
+        await APIService.fetchDataByType(symbol, dataType, params);
     if (dataTypeCategoryOne.contains(dataType)) {
       dataSeries[0].add(tempHolder);
       cartesianSeries[0].add(tempHolder.getCartesianSeries());
@@ -139,7 +140,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              toggleShowSettings();
+            },
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Theme.of(context).highlightColor,
@@ -149,7 +152,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
           const SizedBox(width: 50),
           TextButton(
             onPressed: () {
-              print(indicatorParamsInput);
+              addIndicator(dataType, indicatorParamsInput);
+              showIndicatorParameters = false;
+              setState(() {});
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,

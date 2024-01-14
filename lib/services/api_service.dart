@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:stocker/models/data_type_helper.dart';
+import 'package:stocker/models/query_params.dart';
 import 'package:stocker/models/technical_indicator_daily.dart';
 import 'package:stocker/models/time_series_daily.dart';
 
@@ -27,10 +28,7 @@ class APIService {
   }
 
   /// Returns a future of data of the desired symbol and type
-  static Future<dynamic> fetchDataByType(String symbol, DataType dataType,
-      {String interval = "weekly",
-      String timePeriod = "10",
-      String seriesType = "open"}) async {
+  static Future<dynamic> fetchDataByType(String symbol, DataType dataType, Map<QueryParam, String> params) async {
     dynamic url;
     switch (dataType) {
       case DataType.stockDaily:
@@ -39,7 +37,7 @@ class APIService {
         break;
       case DataType.sma:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=$interval&time_period=$timePeriod&series_type=$seriesType&apikey=$API_KEY";
+            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
         break;
       case DataType.rsi:
         url =
