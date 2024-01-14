@@ -1,3 +1,4 @@
+import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:stocker/services/api_service.dart';
@@ -22,7 +23,8 @@ Map<String, DataType> indicatorToEnum = {
   "Stochastic (STOCH)": DataType.stoch,
 };
 
-class TechnicalIndicatorDaily {
+class TechnicalIndicatorDaily extends DataModel {
+  @override
   late final DataType dataType;
   late final String symbol;
   late final Map<DateTime, DateValuePair> data;
@@ -50,6 +52,7 @@ class TechnicalIndicatorDaily {
 
   List<DateValuePair> asList() => data.values.toList();
 
+  @override
   LineSeries<DateValuePair, DateTime> getCartesianSeries() {
     return LineSeries<DateValuePair, DateTime>(
       dataSource: asList(),
@@ -58,6 +61,7 @@ class TechnicalIndicatorDaily {
     );
   }
 
+  @override
   String getSummary() {
     switch (dataType) {
       case DataType.sma:
@@ -72,6 +76,7 @@ class TechnicalIndicatorDaily {
     return "";
   }
 
+  @override
   Map<QueryParam, String> getParams() {
     switch (dataType) {
       case DataType.sma:

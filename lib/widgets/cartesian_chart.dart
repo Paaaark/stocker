@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:stocker/models/data_model.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class CartesianChart extends StatefulWidget {
   final List<CartesianSeries> cartesianSeries;
-  final List<dynamic> dataSeries;
+  final List<DataModel> dataSeries;
   final int flex;
   final Function onZoom;
   final Function onCreateAxisController;
   final int chartIndex;
 
-  const CartesianChart.createChart(this.cartesianSeries, this.dataSeries,
+  CartesianChart.createChart(this.dataSeries,
       this.flex, this.onZoom, this.onCreateAxisController, this.chartIndex,
-      {super.key});
+      {super.key}):
+      cartesianSeries = dataSeries.map<CartesianSeries>((entry) => entry.getCartesianSeries()).toList();
 
   @override
   State<CartesianChart> createState() => _CartesianChartState();

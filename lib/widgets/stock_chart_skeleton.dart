@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:stocker/widgets/cartesian_chart.dart';
@@ -34,13 +35,14 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   List<DataType> dataTypeOptions = DataType.values;
   List<DataType> dataTypes = [];
   List<CartesianChart> charts = [];
-  List<List<CartesianSeries>> cartesianSeries = [[]];
-  List<List<dynamic>> dataSeries = [[]];
+  List<List<DataModel>> dataSeries = [[]];
 
   List<Widget> indicatorParamsWidget = [];
   Map<QueryParam, String> indicatorParamsInput = {};
 
   List<DateTimeAxisController> axisControllers = [];
+
+  final TextEditingController _tickerFieldController = TextEditingController();
 
   @override
   void initState() {
@@ -61,8 +63,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
         await APIService.fetchDataByType(symbol, dataType, params);
     if (dataTypeCategoryOne.contains(dataType)) {
       dataSeries[0].add(tempHolder);
-      cartesianSeries[0].add(tempHolder.getCartesianSeries());
-      CartesianChart temp = CartesianChart.createChart(cartesianSeries[0],
+      CartesianChart temp = CartesianChart.createChart(
           dataSeries[0], 3, onZoom, onCreateAxisController, 0);
       if (charts.isEmpty) {
         charts.add(temp);
@@ -71,14 +72,12 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       }
     } else {
       dataSeries.add([tempHolder]);
-      cartesianSeries.add([tempHolder.getCartesianSeries()]);
       charts.add(CartesianChart.createChart(
-        cartesianSeries[cartesianSeries.length - 1],
-        dataSeries[cartesianSeries.length - 1],
+        dataSeries[dataSeries.length - 1],
         1,
         onZoom,
         onCreateAxisController,
-        cartesianSeries.length - 1,
+        dataSeries.length - 1,
       ));
     }
 
@@ -171,6 +170,23 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     setState(() {});
   }
 
+  void refetchAllData(String newSymbol) async {
+    setState(() => isLoading = true);
+    dataSeries = await APIService.refetchAllData(dataSeries, newSymbol);
+
+    for (var i = 0; i < charts.length; i++) {
+      charts[i] = CartesianChart.createChart(
+        dataSeries[i],
+        i == 0 ? 3 : 1,
+        onZoom,
+        onCreateAxisController,
+        0,
+      );
+    }
+    symbol = newSymbol;
+    setState(() => isLoading = false);
+  }
+
   void toggleIndicatorParamsByExistingSeries(dynamic dataSeries) {}
 
   // Synchronized zooming between all charts
@@ -217,7 +233,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          "Single Stock Chart: $symbol",
+                          "Stock Chart: $symbol",
                           style: TextStyle(
                             fontSize: 16,
                             color:
@@ -233,6 +249,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                         child: SizedBox(
                           height: 34,
                           child: TextField(
+                            controller: _tickerFieldController,
                             decoration: InputDecoration(
                               isDense: true,
                               filled: true,
@@ -242,6 +259,12 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                             style: const TextStyle(
                               fontSize: 14,
                             ),
+                            onSubmitted: ((value) {
+                              refetchAllData(value);
+                              setState(() {
+                                _tickerFieldController.clear();
+                              });
+                            }),
                           ),
                         ),
                       ),

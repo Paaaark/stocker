@@ -1,6 +1,11 @@
+import 'package:stocker/models/data_model.dart';
+import 'package:stocker/models/data_type_helper.dart';
+import 'package:stocker/models/query_params.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class TimeSeriesDaily {
+class TimeSeriesDaily extends DataModel {
+  @override
+  final DataType dataType = DataType.stockDaily;
   late final Map<DateTime, DataPointDaily> data;
   late final String symbol;
 
@@ -30,6 +35,7 @@ class TimeSeriesDaily {
   DataPointDaily? getDataByDate(DateTime targetDate) => data[targetDate];
   List<DataPointDaily> asList() => data.values.toList();
 
+  @override
   CandleSeries<DataPointDaily, DateTime> getCartesianSeries() {
     return CandleSeries<DataPointDaily, DateTime>(
       dataSource: asList(),
@@ -42,6 +48,10 @@ class TimeSeriesDaily {
     );
   }
 
+  @override
+  Map<QueryParam, String> getParams() => {};
+
+  @override
   String getSummary() => symbol;
 }
 

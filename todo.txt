@@ -1,12 +1,11 @@
 General
-  Customize the arguments for technical indicators
-    Continue working on dropdownMenu and TextInput on query_param.dart
-    Make chips clickable
+  Ticker search
+    Continue working on api_service.dart to fetch new_data
+  Make chips clickable
   Add multiple charts to one screen
   Toggle from candle, line, ohlc
   Fullscreen function
   Animate IsLoading
-  Ticker search
   Prevent page from scrolling when the cursor is on the graph
   Better labels when zoomed in
   Top winners & Top losers
@@ -33,3 +32,5 @@ Done
     Make the font smaller
     Put some margin on horizontal lines
     Finish setting them for RSI, OBV, etc
+  Customize the arguments for technical indicators
+    Continue working on dropdownMenu and TextInput on query_param.dart

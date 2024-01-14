@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:stocker/models/technical_indicator_daily.dart';
@@ -13,7 +14,8 @@ class APIService {
 
   /// Returns a future of daily data of the desired symbol
   static Future<TimeSeriesDaily> getTimeSeriesDaily(String symbol) async {
-    final url = Uri.parse("$baseUrl?$timeSeriesDaily&symbol=IBM&apikey=demo");
+    final url =
+        Uri.parse("$baseUrl?$timeSeriesDaily&symbol=$symbol&apikey=demo");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final Map<String, dynamic> fetchedData = jsonDecode(response.body);
@@ -28,12 +30,13 @@ class APIService {
   }
 
   /// Returns a future of data of the desired symbol and type
-  static Future<dynamic> fetchDataByType(String symbol, DataType dataType, Map<QueryParam, String> params) async {
+  static Future<dynamic> fetchDataByType(
+      String symbol, DataType dataType, Map<QueryParam, String> params) async {
     dynamic url;
     switch (dataType) {
       case DataType.stockDaily:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&apikey=$API_KEY";
+            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&outputsize=full&apikey=$API_KEY";
         break;
       case DataType.sma:
         url =
@@ -57,6 +60,9 @@ class APIService {
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final Map<String, dynamic> fetchedData = jsonDecode(response.body);
+
+      print(fetchedData);
+
       if (dataType == DataType.stockDaily) {
         return TimeSeriesDaily.fromJSON(fetchedData);
       }
@@ -65,5 +71,20 @@ class APIService {
         return TechnicalIndicatorDaily.fromJSON(fetchedData);
       }
     }
+  }
+
+  static Future<List<List<DataModel>>> refetchAllData(
+      List<List<DataModel>> currentData, String newSymbol) async {
+    List<List<DataModel>> newData = [];
+    for (List<DataModel> row in currentData) {
+      List<DataModel> newRow = [];
+      for (dynamic item in row) {
+        newRow.add(
+            await fetchDataByType(newSymbol, item.dataType, item.getParams()));
+      }
+      newData.add(newRow);
+    }
+
+    return newData;
   }
 }
