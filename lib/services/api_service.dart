@@ -32,38 +32,35 @@ class APIService {
   /// Returns a future of data of the desired symbol and type
   static Future<dynamic> fetchDataByType(
       String symbol, DataType dataType, Map<QueryParam, String> params) async {
-    print("FetchDataByType called");
+    String dataTypeStr = DataTypeHelper.dataTypeEnumToString[dataType]!;
     dynamic url;
     switch (dataType) {
       case DataType.stockDaily:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&outputsize=full&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&outputsize=full&apikey=$API_KEY";
         break;
       case DataType.sma:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
         break;
       case DataType.rsi:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
         break;
       case DataType.obv:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=${params[QueryParam.interval]}&apikey=$API_KEY";
         break;
       case DataType.stoch:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=daily&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=daily&apikey=$API_KEY";
         break;
     }
 
-    print(url);
     url = Uri.parse(url);
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final Map<String, dynamic> fetchedData = jsonDecode(response.body);
-
-      print(fetchedData);
 
       if (fetchedData.containsKey("Error Message")) {
         throw Exception();

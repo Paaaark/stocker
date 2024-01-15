@@ -29,7 +29,7 @@ class StockChartSkeleton extends StatefulWidget {
 }
 
 class _StockChartSkeletonState extends State<StockChartSkeleton> {
-  bool showIndicatorOptions = false;
+  bool showIndicatorsList = false;
   bool showIndicatorParameters = false;
   bool isLoading = true;
   bool symbolNotFound = false;
@@ -47,29 +47,39 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   List<DateTimeAxisController> axisControllers = [];
 
+  late final Map<String, Function> cartesianChartFunctions;
+
   final TextEditingController _tickerFieldController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     addIndicator(DataType.stockDaily, {});
+    cartesianChartFunctions = {
+      "onZoom": onZoom,
+      "onCreateAxisController": onCreateAxisController,
+      "onChipPressed": onChipPressed,
+    };
     setState(() {});
   }
 
   void addIndicator(DataType dataType, Map<QueryParam, String> params) async {
     // Turn on loading mode to fetch the data
     isLoading = true;
-    showIndicatorOptions = false;
+    showIndicatorsList = false;
     setState(() {});
 
     dataTypes.add(dataType);
     // Fetch the data using APIService
-    dynamic tempHolder =
+    DataModel tempHolder =
         await APIService.fetchDataByType(symbol, dataType, params);
     if (dataTypeCategoryOne.contains(dataType)) {
       dataSeries[0].add(tempHolder);
       CartesianChart temp = CartesianChart.createChart(
-          dataSeries[0], 3, onZoom, onCreateAxisController, 0);
+        dataSeries: dataSeries[0],
+        cartesianChartFunctions: cartesianChartFunctions,
+        chartIndex: 0,
+      );
       if (charts.isEmpty) {
         charts.add(temp);
       } else {
@@ -78,11 +88,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     } else {
       dataSeries.add([tempHolder]);
       charts.add(CartesianChart.createChart(
-        dataSeries[dataSeries.length - 1],
-        1,
-        onZoom,
-        onCreateAxisController,
-        dataSeries.length - 1,
+        dataSeries: dataSeries[dataSeries.length - 1],
+        cartesianChartFunctions: cartesianChartFunctions,
+        chartIndex: dataSeries.length - 1,
       ));
     }
 
@@ -91,88 +99,44 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     setState(() {});
   }
 
+  void updateIndicator(
+    DataType dataType,
+    Map<QueryParam, String> params,
+    int chartIndex,
+    int dataIndex,
+  ) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    DataModel tempHolder =
+        await APIService.fetchDataByType(symbol, dataType, params);
+    dataSeries[chartIndex][dataIndex] = tempHolder;
+    charts[chartIndex] = CartesianChart.createChart(
+      dataSeries: dataSeries[chartIndex],
+      cartesianChartFunctions: cartesianChartFunctions,
+      chartIndex: chartIndex,
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   void toggleShowSettings() {
-    showIndicatorOptions = !showIndicatorOptions;
-    showIndicatorParameters = false;
-    setState(() {});
+    setState(() {
+      showIndicatorsList = !showIndicatorsList;
+      showIndicatorParameters = false;
+    });
   }
 
   void toggleIndicatorParamsByDataType(DataType dataType) {
-    indicatorParamsWidget.clear();
-    indicatorParamsInput.clear();
+    _addIndiactorParamsWidgets(dataType);
 
-    /// Add the top text showing the dataType
-    indicatorParamsWidget.add(
-      Text(
-        DataTypeHelper.dataTypeEnumToString[dataType]!,
-        style: const TextStyle(
-          fontSize: 16,
-        ),
-      ),
-    );
-
-    /// Add an option for each QueryParam
-    QueryParamsHelper.getParamsByType(dataType).forEach((key, value) {
-      indicatorParamsWidget.add(
-        Container(
-          margin: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 150,
-                child: Text(
-                  queryParamtoString[key]!,
-                  style: const TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              QueryParamsHelper.getParamInputWidgetByType(
-                  key, indicatorParamsInput.update),
-            ],
-          ),
-        ),
-      );
+    setState(() {
+      showIndicatorsList = false;
+      showIndicatorParameters = true;
     });
-
-    /// Add the bottom confirm buttons
-    indicatorParamsWidget.add(Container(
-      margin: const EdgeInsets.symmetric(vertical: 15),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextButton(
-            onPressed: () {
-              toggleShowSettings();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Theme.of(context).highlightColor,
-            ),
-            child: const Text("Cancel"),
-          ),
-          const SizedBox(width: 50),
-          TextButton(
-            onPressed: () {
-              addIndicator(dataType, indicatorParamsInput);
-              showIndicatorParameters = false;
-              setState(() {});
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Theme.of(context).highlightColor,
-            ),
-            child: const Text("Confirm and Add"),
-          ),
-        ],
-      ),
-    ));
-
-    showIndicatorOptions = false;
-    showIndicatorParameters = true;
-    setState(() {});
   }
 
   void refetchAllData(String newSymbol) async {
@@ -183,11 +147,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
       for (var i = 0; i < charts.length; i++) {
         charts[i] = CartesianChart.createChart(
-          dataSeries[i],
-          i == 0 ? 3 : 1,
-          onZoom,
-          onCreateAxisController,
-          0,
+          dataSeries: dataSeries[i],
+          cartesianChartFunctions: cartesianChartFunctions,
+          chartIndex: i,
         );
       }
       symbol = newSymbol;
@@ -217,7 +179,115 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     }
   }
 
-  void toggleIndicatorParamsByExistingSeries(dynamic dataSeries) {}
+  void onChipPressed(DataModel dataSeries, int chartIndex, int dataIndex) {
+    _addIndiactorParamsWidgets(
+      dataSeries.dataType,
+      params: dataSeries.getParams(),
+      directlyFromChart: true,
+      chartIndex: chartIndex,
+      dataIndex: dataIndex,
+    );
+
+    setState(() {
+      showIndicatorParameters = true;
+    });
+  }
+
+  void _addIndiactorParamsWidgets(
+    DataType dataType, {
+    Map<QueryParam, String>? params,
+    bool directlyFromChart = false,
+    int chartIndex = 0,
+    int dataIndex = 0,
+  }) {
+    /// First reset all the existing widgets and inputs
+    indicatorParamsWidget.clear();
+    indicatorParamsInput.clear();
+
+    /// If params is null, then initialize it with default params
+    params ??= QueryParamsHelper.getParamsByType(dataType);
+
+    /// Add the top text showing the dataType
+    indicatorParamsWidget.add(
+      Text(
+        DataTypeHelper.dataTypeEnumToString[dataType]!,
+        style: const TextStyle(
+          fontSize: 16,
+        ),
+      ),
+    );
+
+    /// Add an option for each QueryParam
+    params.forEach((key, value) {
+      indicatorParamsWidget.add(
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 150,
+                child: Text(
+                  queryParamtoString[key]!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              QueryParamsHelper.getParamInputWidgetByType(
+                  key, indicatorParamsInput.update, value),
+            ],
+          ),
+        ),
+      );
+    });
+
+    /// Add the bottom confirm buttons
+    indicatorParamsWidget.add(Container(
+      margin: const EdgeInsets.symmetric(vertical: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton(
+            onPressed: () {
+              if (directlyFromChart) {
+                toggleShowSettings();
+              } else {
+                setState(() {
+                  showIndicatorParameters = false;
+                });
+              }
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).highlightColor,
+            ),
+            child: const Text("Cancel"),
+          ),
+          const SizedBox(width: 50),
+          TextButton(
+            onPressed: () {
+              if (directlyFromChart) {
+                updateIndicator(
+                    dataType, indicatorParamsInput, chartIndex, dataIndex);
+              } else {
+                addIndicator(dataType, indicatorParamsInput);
+              }
+              showIndicatorParameters = false;
+              setState(() {});
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).highlightColor,
+            ),
+            child:
+                Text(directlyFromChart ? "Confirm Changes" : "Confirm and Add"),
+          ),
+        ],
+      ),
+    ));
+  }
 
   // Synchronized zooming between all charts
   void onZoom(double currentZoomPosition, double currentZoomFactor) {
@@ -327,7 +397,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: bestMatchWidgets,
                     )),
-              if (showIndicatorOptions || showIndicatorParameters)
+              if (showIndicatorsList || showIndicatorParameters)
 
                 /// #TODO: Use Animated Modal Barrier
                 ModalBarrier(
@@ -336,7 +406,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                     toggleShowSettings();
                   },
                 ),
-              if (showIndicatorOptions)
+              if (showIndicatorsList)
                 Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

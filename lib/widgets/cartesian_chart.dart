@@ -8,13 +8,22 @@ class CartesianChart extends StatefulWidget {
   final int flex;
   final Function onZoom;
   final Function onCreateAxisController;
+  final Function onChipPressed;
   final int chartIndex;
 
-  CartesianChart.createChart(this.dataSeries, this.flex, this.onZoom,
-      this.onCreateAxisController, this.chartIndex, {super.key})
+  CartesianChart.createChart(
+      {required this.dataSeries,
+      required cartesianChartFunctions,
+      required this.chartIndex,
+      super.key})
       : cartesianSeries = dataSeries
             .map<CartesianSeries>((entry) => entry.getCartesianSeries())
-            .toList();
+            .toList(),
+        onZoom = cartesianChartFunctions["onZoom"],
+        onCreateAxisController =
+            cartesianChartFunctions["onCreateAxisController"],
+        onChipPressed = cartesianChartFunctions["onChipPressed"],
+        flex = chartIndex == 0 ? 3 : 1;
 
   @override
   State<CartesianChart> createState() => _CartesianChartState();
@@ -63,14 +72,17 @@ class _CartesianChartState extends State<CartesianChart> {
           margin: const EdgeInsets.symmetric(horizontal: 45, vertical: 11),
           child: Row(
             children: [
-              for (dynamic series in widget.dataSeries)
+              for (int dataIndex = 0; dataIndex < widget.dataSeries.length; dataIndex++)
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Chip(
-                    label: Text(series.getSummary()),
+                  child: InputChip(
+                    label: Text(widget.dataSeries[dataIndex].getSummary()),
                     labelStyle: const TextStyle(
                       fontSize: 12,
                     ),
+                    onPressed: () {
+                      widget.onChipPressed(widget.dataSeries[dataIndex], widget.chartIndex, dataIndex);
+                    },
                   ),
                 ),
             ],

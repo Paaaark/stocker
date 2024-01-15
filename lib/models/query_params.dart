@@ -30,7 +30,11 @@ class QueryParamsHelper {
     return {};
   }
 
-  static Widget getParamInputWidgetByType(QueryParam param, Function update) {
+  static Widget getParamInputWidgetByType(
+    QueryParam param,
+    Function update,
+    String defaultVal,
+  ) {
     switch (param) {
       case QueryParam.interval:
         return _DropdownMenu(
@@ -46,6 +50,7 @@ class QueryParamsHelper {
           ],
           thisQueryParam: param,
           update: update,
+          defaultVal: defaultVal,
         );
       case QueryParam.seriesType:
         return _DropdownMenu(
@@ -57,10 +62,11 @@ class QueryParamsHelper {
           ],
           thisQueryParam: param,
           update: update,
+          defaultVal: defaultVal,
         );
       case QueryParam.timePeriod:
         return _TextInput(
-          initialValue: "10",
+          initialValue: defaultVal,
           thisQueryParam: param,
           update: update,
         );
@@ -81,11 +87,13 @@ class QueryParamsHelper {
 class _DropdownMenu extends StatefulWidget {
   final List<String> items;
   final QueryParam thisQueryParam;
+  final String defaultVal;
   final Function update;
   const _DropdownMenu(
       {required this.items,
       required this.thisQueryParam,
       required this.update,
+      required this.defaultVal,
       super.key});
 
   @override
@@ -96,7 +104,7 @@ class __DropdownMenuState extends State<_DropdownMenu> {
   late String selectedItem;
   @override
   void initState() {
-    selectedItem = widget.items[0];
+    selectedItem = widget.defaultVal;
     widget.update(widget.thisQueryParam, (value) => selectedItem,
         ifAbsent: () => selectedItem);
   }
