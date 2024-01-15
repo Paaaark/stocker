@@ -3,27 +3,28 @@ import 'package:stocker/models/data_model.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class CartesianChart extends StatefulWidget {
-  final List<CartesianSeries> cartesianSeries;
-  final List<DataModel> dataSeries;
+  final Map<String, CartesianSeries> cartesianSeries;
+  final Map<String, DataModel> dataSeries;
+  final bool isMainChart;
   final int flex;
   final Function onZoom;
   final Function onCreateAxisController;
   final Function onChipPressed;
-  final int chartIndex;
+  final String chartId;
 
   CartesianChart.createChart(
       {required this.dataSeries,
       required cartesianChartFunctions,
-      required this.chartIndex,
+      required this.chartId,
+      this.isMainChart = false,
       super.key})
-      : cartesianSeries = dataSeries
-            .map<CartesianSeries>((entry) => entry.getCartesianSeries())
-            .toList(),
+      : cartesianSeries = dataSeries.map<String, CartesianSeries>(
+            (key, value) => MapEntry(key, value.getCartesianSeries())),
         onZoom = cartesianChartFunctions["onZoom"],
         onCreateAxisController =
             cartesianChartFunctions["onCreateAxisController"],
         onChipPressed = cartesianChartFunctions["onChipPressed"],
-        flex = chartIndex == 0 ? 3 : 1;
+        flex = isMainChart ? 3 : 1;
 
   @override
   State<CartesianChart> createState() => _CartesianChartState();
@@ -44,7 +45,7 @@ class _CartesianChartState extends State<CartesianChart> {
             autoScrollingMode: AutoScrollingMode.end,
             name: 'primaryXAxis',
             onRendererCreated: (DateTimeAxisController controller) {
-              widget.onCreateAxisController(controller, widget.chartIndex);
+              widget.onCreateAxisController(controller, widget.chartId);
             },
           ),
           primaryYAxis: const NumericAxis(
@@ -66,22 +67,24 @@ class _CartesianChartState extends State<CartesianChart> {
               widget.onZoom(args.currentZoomPosition, args.currentZoomFactor);
             }
           },
-          series: widget.cartesianSeries,
+          series: widget.cartesianSeries.values.toList(),
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 45, vertical: 11),
           child: Row(
             children: [
-              for (int dataIndex = 0; dataIndex < widget.dataSeries.length; dataIndex++)
+              for (MapEntry<String, DataModel> item
+                  in widget.dataSeries.entries)
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   child: InputChip(
-                    label: Text(widget.dataSeries[dataIndex].getSummary()),
+                    label: Text(item.value.getSummary()),
                     labelStyle: const TextStyle(
                       fontSize: 12,
                     ),
                     onPressed: () {
-                      widget.onChipPressed(widget.dataSeries[dataIndex], widget.chartIndex, dataIndex);
+                      widget.onChipPressed(
+                          item.value, widget.chartId, item.key);
                     },
                   ),
                 ),

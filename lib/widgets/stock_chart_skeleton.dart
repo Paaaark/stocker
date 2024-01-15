@@ -34,18 +34,19 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   bool isLoading = true;
   bool symbolNotFound = false;
   String symbol = "IBM";
+  String? mainChartId;
 
   List<DataType> dataTypeOptions = DataType.values;
-  List<DataType> dataTypes = [];
-  List<CartesianChart> charts = [];
-  List<List<DataModel>> dataSeries = [[]];
+  Map<String, Map<String, DataType>> dataTypes = {};
+  Map<String, CartesianChart> charts = {};
+  Map<String, Map<String, DataModel>> dataSeries = {};
 
   List<Widget> indicatorParamsWidget = [];
   Map<QueryParam, String> indicatorParamsInput = {};
 
   List<Widget> bestMatchWidgets = [];
 
-  List<DateTimeAxisController> axisControllers = [];
+  Map<String, DateTimeAxisController> axisControllers = {};
 
   late final Map<String, Function> cartesianChartFunctions;
 
@@ -69,30 +70,41 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     showIndicatorsList = false;
     setState(() {});
 
-    dataTypes.add(dataType);
+    String id = APIService.getUniqueID();
+    String subId = APIService.getUniqueID();
+
     // Fetch the data using APIService
     DataModel tempHolder =
         await APIService.fetchDataByType(symbol, dataType, params);
     if (dataTypeCategoryOne.contains(dataType)) {
-      dataSeries[0].add(tempHolder);
+      // If mainChartId doesn't exist, set it to current id
+      mainChartId ??= id;
+      id = mainChartId!;
+      // Null safety dataSeries
+      dataSeries[id] = dataSeries[id] ?? {};
+      dataSeries[id]?[subId] = tempHolder;
+
       CartesianChart temp = CartesianChart.createChart(
-        dataSeries: dataSeries[0],
+        dataSeries: dataSeries[id]!,
         cartesianChartFunctions: cartesianChartFunctions,
-        chartIndex: 0,
+        chartId: id,
+        isMainChart: true,
       );
-      if (charts.isEmpty) {
-        charts.add(temp);
-      } else {
-        charts[0] = temp;
-      }
+      charts[id] = temp;
     } else {
-      dataSeries.add([tempHolder]);
-      charts.add(CartesianChart.createChart(
-        dataSeries: dataSeries[dataSeries.length - 1],
+      // Null safety dataSeries
+      dataSeries[id] = dataSeries[id] ?? {};
+      dataSeries[id]?[subId] = tempHolder;
+
+      charts[id] = CartesianChart.createChart(
+        dataSeries: dataSeries[id]!,
         cartesianChartFunctions: cartesianChartFunctions,
-        chartIndex: dataSeries.length - 1,
-      ));
+        chartId: id,
+      );
     }
+
+    dataTypes[id] = dataTypes[id] ?? {};
+    dataTypes[id]?[subId] = dataType;
 
     // When loading is done, display it on the screen
     isLoading = false;
@@ -102,8 +114,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   void updateIndicator(
     DataType dataType,
     Map<QueryParam, String> params,
-    int chartIndex,
-    int dataIndex,
+    String chartId,
+    String subId,
   ) async {
     setState(() {
       isLoading = true;
@@ -111,11 +123,12 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
     DataModel tempHolder =
         await APIService.fetchDataByType(symbol, dataType, params);
-    dataSeries[chartIndex][dataIndex] = tempHolder;
-    charts[chartIndex] = CartesianChart.createChart(
-      dataSeries: dataSeries[chartIndex],
+    dataSeries[chartId]?[subId] = tempHolder;
+    charts[chartId] = CartesianChart.createChart(
+      dataSeries: dataSeries[chartId]!,
       cartesianChartFunctions: cartesianChartFunctions,
-      chartIndex: chartIndex,
+      chartId: chartId,
+      isMainChart: chartId == mainChartId,
     );
 
     setState(() {
@@ -145,11 +158,12 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     try {
       dataSeries = await APIService.refetchAllData(dataSeries, newSymbol);
 
-      for (var i = 0; i < charts.length; i++) {
-        charts[i] = CartesianChart.createChart(
-          dataSeries: dataSeries[i],
+      for (String id in charts.keys) {
+        charts[id] = CartesianChart.createChart(
+          dataSeries: dataSeries[id]!,
           cartesianChartFunctions: cartesianChartFunctions,
-          chartIndex: i,
+          chartId: id,
+          isMainChart: id == mainChartId,
         );
       }
       symbol = newSymbol;
@@ -179,13 +193,13 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     }
   }
 
-  void onChipPressed(DataModel dataSeries, int chartIndex, int dataIndex) {
+  void onChipPressed(DataModel dataModel, String chartId, String subId) {
     _addIndiactorParamsWidgets(
-      dataSeries.dataType,
-      params: dataSeries.getParams(),
+      dataModel.dataType,
+      params: dataModel.getParams(),
       directlyFromChart: true,
-      chartIndex: chartIndex,
-      dataIndex: dataIndex,
+      chartId: chartId,
+      subId: subId,
     );
 
     setState(() {
@@ -193,12 +207,19 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     });
   }
 
+  void onChipDeleted(DataModel dataModel, String chartId, String subId) {
+    /// If this is the only line in the graph, remove the graph upon deletion
+    if (chartId != mainChartId && dataSeries[chartId]!.length == 1) {
+      charts.remove(chartId);
+    }
+  }
+
   void _addIndiactorParamsWidgets(
     DataType dataType, {
     Map<QueryParam, String>? params,
     bool directlyFromChart = false,
-    int chartIndex = 0,
-    int dataIndex = 0,
+    String? chartId,
+    String? subId,
   }) {
     /// First reset all the existing widgets and inputs
     indicatorParamsWidget.clear();
@@ -270,7 +291,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
             onPressed: () {
               if (directlyFromChart) {
                 updateIndicator(
-                    dataType, indicatorParamsInput, chartIndex, dataIndex);
+                    dataType, indicatorParamsInput, chartId!, subId!);
               } else {
                 addIndicator(dataType, indicatorParamsInput);
               }
@@ -291,7 +312,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   // Synchronized zooming between all charts
   void onZoom(double currentZoomPosition, double currentZoomFactor) {
-    for (DateTimeAxisController axisController in axisControllers) {
+    for (DateTimeAxisController axisController in axisControllers.values) {
       axisController.zoomPosition = currentZoomPosition;
       axisController.zoomFactor = currentZoomFactor;
     }
@@ -300,12 +321,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   // When a new chart is rendered, add its controller to the list
   void onCreateAxisController(
-      DateTimeAxisController axisController, int index) {
-    if (index < axisControllers.length) {
-      axisControllers[index] = axisController;
-    } else {
-      axisControllers.add(axisController);
-    }
+      DateTimeAxisController axisController, String chartId) {
+    axisControllers[chartId] = axisController;
   }
 
   @override
@@ -388,7 +405,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                           if (isLoading)
                             const Expanded(
                                 child: Center(child: LoadingSpinner())),
-                          if (!isLoading) ...charts,
+                          if (!isLoading) ...charts.values,
                         ],
                       ),
                     )

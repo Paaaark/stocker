@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:stocker/models/data_model.dart';
@@ -76,22 +77,24 @@ class APIService {
     }
   }
 
-  static Future<List<List<DataModel>>> refetchAllData(
-      List<List<DataModel>> currentData, String newSymbol) async {
-    List<List<DataModel>> newData = [];
-    for (List<DataModel> row in currentData) {
-      List<DataModel> newRow = [];
-      for (DataModel item in row) {
+  static Future<Map<String, Map<String, DataModel>>> refetchAllData(
+      Map<String, Map<String, DataModel>> currentData, String newSymbol) async {
+    Map<String, Map<String, DataModel>> newData = {};
+    for (String id in currentData.keys) {
+      Map<String, DataModel> newRow = {};
+      for (String subId in currentData[id]!.keys) {
         try {
-          print("Iteration in refetchAllData: ${item?.dataType}");
-          newRow.add(await fetchDataByType(
-              newSymbol, item.dataType, item.getParams()));
+          newRow[subId] = await fetchDataByType(
+            newSymbol,
+            currentData[id]![subId]!.dataType,
+            currentData[id]![subId]!.getParams(),
+          );
         } catch (e) {
           print(e);
           rethrow;
         }
       }
-      newData.add(newRow);
+      newData[id] = newRow;
     }
 
     return newData;
@@ -119,5 +122,15 @@ class APIService {
     }
 
     return bestMatches;
+  }
+
+  static String getUniqueID() {
+    Random rand = Random(DateTime.now().millisecondsSinceEpoch);
+    String key = "";
+    for (int i = 0; i < 10; i++) {
+      int x = rand.nextInt(26);
+      key += String.fromCharCode(97 + x);
+    }
+    return key;
   }
 }
