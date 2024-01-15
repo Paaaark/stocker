@@ -17,11 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   void onPressAddChart() {
     gridChildren.insert(
       gridChildren.length - 1,
-      StaggeredGridTile.count(
-        mainAxisCellCount: 1,
-        crossAxisCellCount: 1,
-        child: Text("${gridChildren.length}"),
-      ),
+      const StockChartSkeleton(),
     );
     setState(() => {});
   }

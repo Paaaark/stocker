@@ -1,8 +1,6 @@
 General
-  Ticker search when wrong ticker is entered
   SCROLLLLLLLLLL
   Make chips clickable
-  Add multiple charts to one screen
   Toggle from candle, line, ohlc
   Fullscreen function
   Dim the chart in (for aesthetic purpose)
@@ -36,3 +34,5 @@ Done
     Continue working on dropdownMenu and TextInput on query_param.dart
   Ticker search
   Animate IsLoading
+  Ticker search when wrong ticker is entered
+  Add multiple charts to one screen

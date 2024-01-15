@@ -1,7 +1,6 @@
 import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
-import 'package:stocker/services/api_service.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 Map<String, String> indicatorToSubheading = {
@@ -29,9 +28,6 @@ class TechnicalIndicatorDaily extends DataModel {
   late final String symbol;
   late final Map<DateTime, DateValuePair> data;
   late final Map<String, dynamic> metaData;
-  String interval = "daily";
-  String timePeriod = "10";
-  String seriesType = "open";
 
   TechnicalIndicatorDaily.fromJSON(Map<String, dynamic> json) {
     Map<DateTime, DateValuePair> myData = {};
@@ -82,13 +78,13 @@ class TechnicalIndicatorDaily extends DataModel {
       case DataType.sma:
       case DataType.rsi:
         return {
-          QueryParam.interval: metaData["4: Interval"],
-          QueryParam.timePeriod: metaData["5: Time Period"],
-          QueryParam.seriesType: metaData["6: Series Type"],
+          QueryParam.interval: "${metaData["4: Interval"]}",
+          QueryParam.timePeriod: "${metaData["5: Time Period"]}",
+          QueryParam.seriesType: "${metaData["6: Series Type"]}",
         };
       case DataType.obv:
         return {
-          QueryParam.interval: metaData["4: Interval"],
+          QueryParam.interval: "${metaData["4: Interval"]}",
         };
     }
     return {};

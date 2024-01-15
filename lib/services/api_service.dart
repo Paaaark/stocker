@@ -32,6 +32,7 @@ class APIService {
   /// Returns a future of data of the desired symbol and type
   static Future<dynamic> fetchDataByType(
       String symbol, DataType dataType, Map<QueryParam, String> params) async {
+    print("FetchDataByType called");
     dynamic url;
     switch (dataType) {
       case DataType.stockDaily:
@@ -44,7 +45,7 @@ class APIService {
         break;
       case DataType.rsi:
         url =
-            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=weekly&time_period=10&series_type=open&apikey=$API_KEY";
+            "$baseUrl?function=${DataTypeHelper.dataTypeEnumToString[dataType]}&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
         break;
       case DataType.obv:
         url =
@@ -56,6 +57,7 @@ class APIService {
         break;
     }
 
+    print(url);
     url = Uri.parse(url);
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -82,11 +84,13 @@ class APIService {
     List<List<DataModel>> newData = [];
     for (List<DataModel> row in currentData) {
       List<DataModel> newRow = [];
-      for (dynamic item in row) {
+      for (DataModel item in row) {
         try {
+          print("Iteration in refetchAllData: ${item?.dataType}");
           newRow.add(await fetchDataByType(
               newSymbol, item.dataType, item.getParams()));
         } catch (e) {
+          print(e);
           rethrow;
         }
       }
