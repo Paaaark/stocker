@@ -60,6 +60,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       "onZoom": onZoom,
       "onCreateAxisController": onCreateAxisController,
       "onChipPressed": onChipPressed,
+      "onChipDeleted": onChipDeleted,
     };
     setState(() {});
   }
@@ -211,7 +212,16 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     /// If this is the only line in the graph, remove the graph upon deletion
     if (chartId != mainChartId && dataSeries[chartId]!.length == 1) {
       charts.remove(chartId);
+    } else {
+      dataSeries[chartId]!.remove(subId);
+      charts[chartId] = CartesianChart.createChart(
+        dataSeries: dataSeries[chartId]!,
+        cartesianChartFunctions: cartesianChartFunctions,
+        chartId: chartId,
+        isMainChart: chartId == mainChartId,
+      );
     }
+    setState(() {});
   }
 
   void _addIndiactorParamsWidgets(

@@ -10,6 +10,7 @@ class CartesianChart extends StatefulWidget {
   final Function onZoom;
   final Function onCreateAxisController;
   final Function onChipPressed;
+  final Function onChipDeleted;
   final String chartId;
 
   CartesianChart.createChart(
@@ -24,6 +25,7 @@ class CartesianChart extends StatefulWidget {
         onCreateAxisController =
             cartesianChartFunctions["onCreateAxisController"],
         onChipPressed = cartesianChartFunctions["onChipPressed"],
+        onChipDeleted = cartesianChartFunctions["onChipDeleted"],
         flex = isMainChart ? 3 : 1;
 
   @override
@@ -84,6 +86,10 @@ class _CartesianChartState extends State<CartesianChart> {
                     ),
                     onPressed: () {
                       widget.onChipPressed(
+                          item.value, widget.chartId, item.key);
+                    },
+                    onDeleted: () {
+                      widget.onChipDeleted(
                           item.value, widget.chartId, item.key);
                     },
                   ),
