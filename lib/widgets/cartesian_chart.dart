@@ -33,6 +33,8 @@ class CartesianChart extends StatefulWidget {
 }
 
 class _CartesianChartState extends State<CartesianChart> {
+  late NumericAxisController yAxisController;
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -44,17 +46,21 @@ class _CartesianChartState extends State<CartesianChart> {
             initialVisibleMaximum: DateTime.parse("2024-01-10"),
             initialZoomPosition: 0,
             initialZoomFactor: 1,
-            autoScrollingMode: AutoScrollingMode.end,
             name: 'primaryXAxis',
             onRendererCreated: (DateTimeAxisController controller) {
               widget.onCreateAxisController(controller, widget.chartId);
             },
           ),
-          primaryYAxis: const NumericAxis(
+          primaryYAxis: NumericAxis(
             anchorRangeToVisiblePoints: true,
+            onRendererCreated: (NumericAxisController controller) {
+              yAxisController = controller;
+            },
+            rangePadding: ChartRangePadding.round,
+            name: 'primaryYAxis',
           ),
           zoomPanBehavior: ZoomPanBehavior(
-            enablePinching: true,
+            // enablePinching: true,
             zoomMode: ZoomMode.x,
             enablePanning: true,
             enableMouseWheelZooming: true,

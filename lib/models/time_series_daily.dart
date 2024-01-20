@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
@@ -45,6 +47,7 @@ class TimeSeriesDaily extends DataModel {
       highValueMapper: (DataPointDaily data, _) => data.high,
       openValueMapper: (DataPointDaily data, _) => data.open,
       closeValueMapper: (DataPointDaily data, _) => data.close,
+      sortingOrder: SortingOrder.descending,
     );
   }
 

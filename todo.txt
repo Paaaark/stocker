@@ -1,10 +1,8 @@
 General
-  SCROLLLLLLLLLL
-  Make Chips deletable
+  Prevent page from scrolling when the cursor is on the graph
   Toggle from candle, line, ohlc
   Fullscreen function
   Dim the chart in (for aesthetic purpose)
-  Prevent page from scrolling when the cursor is on the graph
   Better labels when zoomed in
   Top winners & Top losers
   Sentiment watcher (Possibly make them myself)
@@ -37,3 +35,4 @@ Done
   Ticker search when wrong ticker is entered
   Add multiple charts to one screen
   Make chips clickable
+  Make Chips deletable

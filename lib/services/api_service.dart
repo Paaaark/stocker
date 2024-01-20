@@ -12,6 +12,7 @@ class APIService {
   static const String baseUrl = "https://www.alphavantage.co/query";
   static const String timeSeriesDaily = "function=TIME_SERIES_DAILY";
   static const String API_KEY = String.fromEnvironment("API_KEY");
+  static const String OUTPUT_SIZE = "compact";
 
   /// Returns a future of daily data of the desired symbol
   static Future<TimeSeriesDaily> getTimeSeriesDaily(String symbol) async {
@@ -38,7 +39,7 @@ class APIService {
     switch (dataType) {
       case DataType.stockDaily:
         url =
-            "$baseUrl?function=$dataTypeStr&symbol=$symbol&outputsize=full&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&outputsize=$OUTPUT_SIZE&apikey=$API_KEY";
         break;
       case DataType.sma:
         url =
