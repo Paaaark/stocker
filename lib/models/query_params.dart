@@ -87,6 +87,18 @@ class QueryParamsHelper {
     return const Text("...");
   }
 
+  static String helpMessage(QueryParam param) {
+    switch (param) {
+      case QueryParam.interval:
+        return "Time interval between two consecutive data points";
+      case QueryParam.timePeriod:
+        return "Number of data points used to calculate each indicator";
+      case QueryParam.seriesType:
+        return "The desired price type";
+    }
+    return "";
+  }
+
   static Map<QueryParam, String> _filterParam(List<QueryParam> targetKeys) {
     List<String> targetValues = [];
     for (QueryParam key in targetKeys) {

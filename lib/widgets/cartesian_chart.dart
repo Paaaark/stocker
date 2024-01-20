@@ -46,6 +46,7 @@ class _CartesianChartState extends State<CartesianChart> {
   void initState() {
     trackballBehavior = TrackballBehavior(
       enable: true,
+      tooltipDisplayMode: TrackballDisplayMode.groupAllPoints,
     );
     widget.addTrackballBehavior(widget.chartId, trackballBehavior);
   }

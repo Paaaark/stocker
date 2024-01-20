@@ -4,15 +4,18 @@ General
   Period picker
   Better zoom factor
   Trackballing better summary (Show the names of indicators)
+  Toggle between time interval (daily, intraday, etc)
+  Finish tooltip helper (prettier, more info)
+  Add indicators using syncfusion
   Fullscreen function
   Dim the chart in (for aesthetic purpose)
   Top winners & Top losers
   Sentiment watcher (Possibly make them myself)
   Fundamental data
-  Hosting through aws
   Create RESTnet API
   Add Volume as a bar in the chart
   Even prettier labels
+  Migrate from json to csv for faster data fetching
 
 technical_indicator_daily.dart
   Add more indicators
@@ -42,3 +45,4 @@ Done
   Better labels when zoomed in
   Trackballing
   Toggle from candle, line, ohlc
+  Tooltip helper for indicator parameters

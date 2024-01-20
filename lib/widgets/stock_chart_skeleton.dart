@@ -272,6 +272,10 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                   ),
                 ),
               ),
+              Tooltip(
+                message: QueryParamsHelper.helpMessage(key),
+                child: const Icon(Icons.question_mark),
+              ),
               QueryParamsHelper.getParamInputWidgetByType(
                   key, indicatorParamsInput.update, value),
             ],
