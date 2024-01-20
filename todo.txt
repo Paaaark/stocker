@@ -1,15 +1,20 @@
 General
+  Trackballing
   Prevent page from scrolling when the cursor is on the graph
+  Connect to firebase
+  Period picker
   Toggle from candle, line, ohlc
+  Better zoom factor
+
   Fullscreen function
   Dim the chart in (for aesthetic purpose)
-  Better labels when zoomed in
   Top winners & Top losers
   Sentiment watcher (Possibly make them myself)
   Fundamental data
   Hosting through aws
   Create RESTnet API
   Add Volume as a bar in the chart
+  Even prettier labels
 
 technical_indicator_daily.dart
   Add more indicators
@@ -36,3 +41,4 @@ Done
   Add multiple charts to one screen
   Make chips clickable
   Make Chips deletable
+  Better labels when zoomed in

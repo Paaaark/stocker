@@ -29,24 +29,31 @@ class StockChartSkeleton extends StatefulWidget {
 }
 
 class _StockChartSkeletonState extends State<StockChartSkeleton> {
+  /// Booleans decides which screens to show
   bool showIndicatorsList = false;
   bool showIndicatorParameters = false;
   bool isLoading = true;
   bool symbolNotFound = false;
+
+  /// Stores information about the charts
   String symbol = "IBM";
   String? mainChartId;
 
+  /// Data for the charts
   List<DataType> dataTypeOptions = DataType.values;
   Map<String, Map<String, DataType>> dataTypes = {};
   Map<String, CartesianChart> charts = {};
   Map<String, Map<String, DataModel>> dataSeries = {};
 
+  /// Widgets shown when showIndicatorsList is true
   List<Widget> indicatorParamsWidget = [];
   Map<QueryParam, String> indicatorParamsInput = {};
 
   List<Widget> bestMatchWidgets = [];
 
+  /// Syncs panning and trackballing between the charts
   Map<String, DateTimeAxisController> axisControllers = {};
+  Map<String, TrackballBehavior> trackballBehaviors = {};
 
   late final Map<String, Function> cartesianChartFunctions;
 
@@ -61,6 +68,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       "onCreateAxisController": onCreateAxisController,
       "onChipPressed": onChipPressed,
       "onChipDeleted": onChipDeleted,
+      "addTrackballBehavior": addTrackballBehavior,
+      "onChartTouchInteractionMove": onChartTouchInteractionMove,
+      "onChartInteractionUp": onChartInteractionUp,
     };
     setState(() {});
   }
@@ -85,23 +95,13 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       dataSeries[id] = dataSeries[id] ?? {};
       dataSeries[id]?[subId] = tempHolder;
 
-      CartesianChart temp = CartesianChart.createChart(
-        dataSeries: dataSeries[id]!,
-        cartesianChartFunctions: cartesianChartFunctions,
-        chartId: id,
-        isMainChart: true,
-      );
-      charts[id] = temp;
+      _createChart(id, isMainChart: true);
     } else {
       // Null safety dataSeries
       dataSeries[id] = dataSeries[id] ?? {};
       dataSeries[id]?[subId] = tempHolder;
 
-      charts[id] = CartesianChart.createChart(
-        dataSeries: dataSeries[id]!,
-        cartesianChartFunctions: cartesianChartFunctions,
-        chartId: id,
-      );
+      _createChart(id);
     }
 
     dataTypes[id] = dataTypes[id] ?? {};
@@ -125,12 +125,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     DataModel tempHolder =
         await APIService.fetchDataByType(symbol, dataType, params);
     dataSeries[chartId]?[subId] = tempHolder;
-    charts[chartId] = CartesianChart.createChart(
-      dataSeries: dataSeries[chartId]!,
-      cartesianChartFunctions: cartesianChartFunctions,
-      chartId: chartId,
-      isMainChart: chartId == mainChartId,
-    );
+    _createChart(chartId);
 
     setState(() {
       isLoading = false;
@@ -160,12 +155,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       dataSeries = await APIService.refetchAllData(dataSeries, newSymbol);
 
       for (String id in charts.keys) {
-        charts[id] = CartesianChart.createChart(
-          dataSeries: dataSeries[id]!,
-          cartesianChartFunctions: cartesianChartFunctions,
-          chartId: id,
-          isMainChart: id == mainChartId,
-        );
+        _createChart(id);
       }
       symbol = newSymbol;
     } catch (e) {
@@ -211,17 +201,30 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   void onChipDeleted(DataModel dataModel, String chartId, String subId) {
     /// If this is the only line in the graph, remove the graph upon deletion
     if (chartId != mainChartId && dataSeries[chartId]!.length == 1) {
-      charts.remove(chartId);
+      _deleteChart(chartId);
     } else {
       dataSeries[chartId]!.remove(subId);
-      charts[chartId] = CartesianChart.createChart(
-        dataSeries: dataSeries[chartId]!,
-        cartesianChartFunctions: cartesianChartFunctions,
-        chartId: chartId,
-        isMainChart: chartId == mainChartId,
-      );
+      _createChart(chartId);
     }
     setState(() {});
+  }
+
+  void _createChart(String chartId, {bool? isMainChart}) {
+    charts[chartId] = CartesianChart.createChart(
+      dataSeries: dataSeries[chartId]!,
+      cartesianChartFunctions: cartesianChartFunctions,
+      chartId: chartId,
+      isMainChart: isMainChart ?? chartId == mainChartId,
+    );
+  }
+
+  // Removes the chart and related data with the chartId
+  void _deleteChart(String chartId) {
+    charts.remove(chartId);
+    dataTypes.remove(chartId);
+    dataSeries.remove(chartId);
+    axisControllers.remove(chartId);
+    trackballBehaviors.remove(chartId);
   }
 
   void _addIndiactorParamsWidgets(
@@ -333,6 +336,24 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   void onCreateAxisController(
       DateTimeAxisController axisController, String chartId) {
     axisControllers[chartId] = axisController;
+  }
+
+  // When a new chart is rendered, add its trackball controller to the list
+  void addTrackballBehavior(String key, TrackballBehavior trackballBehavior) {
+    trackballBehaviors[key] = trackballBehavior;
+  }
+
+  // When a trackball is updated, update all the trackballs
+  void onChartTouchInteractionMove(ChartTouchInteractionArgs args) {
+    for (TrackballBehavior behavior in trackballBehaviors.values) {
+      behavior.show(args.position.dx, args.position.dy, 'pixel');
+    }
+  }
+
+  void onChartInteractionUp() {
+    for (TrackballBehavior behavior in trackballBehaviors.values) {
+      behavior.hide();
+    }
   }
 
   @override

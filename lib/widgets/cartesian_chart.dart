@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:stocker/models/data_model.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -11,6 +12,9 @@ class CartesianChart extends StatefulWidget {
   final Function onCreateAxisController;
   final Function onChipPressed;
   final Function onChipDeleted;
+  final Function addTrackballBehavior;
+  final Function onChartTouchInteractionMove;
+  final Function onChartInteractionUp;
   final String chartId;
 
   CartesianChart.createChart(
@@ -26,6 +30,10 @@ class CartesianChart extends StatefulWidget {
             cartesianChartFunctions["onCreateAxisController"],
         onChipPressed = cartesianChartFunctions["onChipPressed"],
         onChipDeleted = cartesianChartFunctions["onChipDeleted"],
+        addTrackballBehavior = cartesianChartFunctions["addTrackballBehavior"],
+        onChartInteractionUp = cartesianChartFunctions["onChartInteractionUp"],
+        onChartTouchInteractionMove =
+            cartesianChartFunctions["onChartTouchInteractionMove"],
         flex = isMainChart ? 3 : 1;
 
   @override
@@ -33,7 +41,14 @@ class CartesianChart extends StatefulWidget {
 }
 
 class _CartesianChartState extends State<CartesianChart> {
-  late NumericAxisController yAxisController;
+  late TrackballBehavior trackballBehavior;
+  @override
+  void initState() {
+    trackballBehavior = TrackballBehavior(
+      enable: true,
+    );
+    widget.addTrackballBehavior(widget.chartId, trackballBehavior);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +59,6 @@ class _CartesianChartState extends State<CartesianChart> {
           primaryXAxis: DateTimeAxis(
             initialVisibleMinimum: DateTime.parse("2023-07-01"),
             initialVisibleMaximum: DateTime.parse("2024-01-10"),
-            initialZoomPosition: 0,
-            initialZoomFactor: 1,
             name: 'primaryXAxis',
             onRendererCreated: (DateTimeAxisController controller) {
               widget.onCreateAxisController(controller, widget.chartId);
@@ -53,9 +66,7 @@ class _CartesianChartState extends State<CartesianChart> {
           ),
           primaryYAxis: NumericAxis(
             anchorRangeToVisiblePoints: true,
-            onRendererCreated: (NumericAxisController controller) {
-              yAxisController = controller;
-            },
+            numberFormat: NumberFormat.compact(),
             rangePadding: ChartRangePadding.round,
             name: 'primaryYAxis',
           ),
@@ -68,12 +79,23 @@ class _CartesianChartState extends State<CartesianChart> {
           onZoomStart: (ZoomPanArgs args) {
             if (args.axis?.name == 'primaryXAxis') {
               widget.onZoom(args.currentZoomPosition, args.currentZoomFactor);
+              print("${args.currentZoomFactor}, ${args.currentZoomPosition}");
             }
           },
           onZooming: (ZoomPanArgs args) {
             if (args.axis?.name == 'primaryXAxis') {
               widget.onZoom(args.currentZoomPosition, args.currentZoomFactor);
             }
+          },
+          trackballBehavior: trackballBehavior,
+          onChartTouchInteractionMove: (ChartTouchInteractionArgs args) {
+            widget.onChartTouchInteractionMove(args);
+          },
+          onChartTouchInteractionDown: (ChartTouchInteractionArgs args) {
+            widget.onChartTouchInteractionMove(args);
+          },
+          onChartTouchInteractionUp: (ChartTouchInteractionArgs args) {
+            widget.onChartInteractionUp();
           },
           series: widget.cartesianSeries.values.toList(),
         ),
