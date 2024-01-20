@@ -15,21 +15,21 @@ class APIService {
   static const String OUTPUT_SIZE = "compact";
 
   /// Returns a future of daily data of the desired symbol
-  static Future<TimeSeriesDaily> getTimeSeriesDaily(String symbol) async {
-    final url =
-        Uri.parse("$baseUrl?$timeSeriesDaily&symbol=$symbol&apikey=demo");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> fetchedData = jsonDecode(response.body);
-      final Map<String, dynamic> fetchedTimeSeries =
-          fetchedData['Time Series (Daily)'];
-      final TimeSeriesDaily timeSeriesDaily =
-          TimeSeriesDaily.fromJSONWithSymbol(fetchedTimeSeries, symbol);
-      return timeSeriesDaily;
-    }
+  // static Future<TimeSeriesDaily> getTimeSeriesDaily(String symbol) async {
+  //   final url =
+  //       Uri.parse("$baseUrl?$timeSeriesDaily&symbol=$symbol&apikey=demo");
+  //   final response = await http.get(url);
+  //   if (response.statusCode == 200) {
+  //     final Map<String, dynamic> fetchedData = jsonDecode(response.body);
+  //     final Map<String, dynamic> fetchedTimeSeries =
+  //         fetchedData['Time Series (Daily)'];
+  //     final TimeSeriesDaily timeSeriesDaily =
+  //         TimeSeriesDaily.fromJSONWithSymbol(fetchedTimeSeries, symbol);
+  //     return timeSeriesDaily;
+  //   }
 
-    throw Error();
-  }
+  //   throw Error();
+  // }
 
   /// Returns a future of data of the desired symbol and type
   static Future<dynamic> fetchDataByType(
@@ -69,7 +69,8 @@ class APIService {
       }
 
       if (dataType == DataType.stockDaily) {
-        return TimeSeriesDaily.fromJSON(fetchedData);
+        return TimeSeriesDaily.fromJSON(
+            fetchedData, line: params[QueryParam.stockDataLineType]);
       }
       if ([DataType.sma, DataType.rsi, DataType.obv, DataType.stoch]
           .contains(dataType)) {

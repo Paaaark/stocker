@@ -10,18 +10,19 @@ class TimeSeriesDaily extends DataModel {
   final DataType dataType = DataType.stockDaily;
   late final Map<DateTime, DataPointDaily> data;
   late final String symbol;
+  late final String lineType;
 
-  TimeSeriesDaily.fromJSONWithSymbol(Map<String, dynamic> json, this.symbol) {
-    Map<DateTime, DataPointDaily> myData = {};
-    final List<String> fetchedDates = json.keys.toList();
-    for (var date in fetchedDates) {
-      myData[DateTime.parse(date)] =
-          DataPointDaily.fromJSONAndDate(json[date], DateTime.parse(date));
-    }
-    data = myData;
-  }
+  // TimeSeriesDaily.fromJSONWithSymbol(Map<String, dynamic> json, this.symbol) {
+  //   Map<DateTime, DataPointDaily> myData = {};
+  //   final List<String> fetchedDates = json.keys.toList();
+  //   for (var date in fetchedDates) {
+  //     myData[DateTime.parse(date)] =
+  //         DataPointDaily.fromJSONAndDate(json[date], DateTime.parse(date));
+  //   }
+  //   data = myData;
+  // }
 
-  TimeSeriesDaily.fromJSON(Map<String, dynamic> json) {
+  TimeSeriesDaily.fromJSON(Map<String, dynamic> json, {String? line}) {
     Map<DateTime, DataPointDaily> myData = {};
     Map<String, dynamic> stockData = json['Time Series (Daily)'];
     Map<String, dynamic> metaData = json['Meta Data'];
@@ -32,30 +33,50 @@ class TimeSeriesDaily extends DataModel {
     }
     data = myData;
     symbol = metaData["2. Symbol"];
+    lineType = line ?? "candle";
   }
 
   DataPointDaily? getDataByDate(DateTime targetDate) => data[targetDate];
   List<DataPointDaily> asList() => data.values.toList();
 
   @override
-  CandleSeries<DataPointDaily, DateTime> getCartesianSeries() {
-    return CandleSeries<DataPointDaily, DateTime>(
-      dataSource: asList(),
-      enableSolidCandles: true,
-      xValueMapper: (DataPointDaily data, _) => data.date,
-      lowValueMapper: (DataPointDaily data, _) => data.low,
-      highValueMapper: (DataPointDaily data, _) => data.high,
-      openValueMapper: (DataPointDaily data, _) => data.open,
-      closeValueMapper: (DataPointDaily data, _) => data.close,
-      sortingOrder: SortingOrder.descending,
-    );
+  CartesianSeries<DataPointDaily, DateTime> getCartesianSeries() {
+    switch (lineType) {
+      case "line":
+        return LineSeries(
+          dataSource: asList(),
+          xValueMapper: (DataPointDaily data, _) => data.date,
+          yValueMapper: (DataPointDaily data, _) => data.close,
+        );
+      case "bar":
+        return HiloOpenCloseSeries(
+          dataSource: asList(),
+          xValueMapper: (DataPointDaily data, _) => data.date,
+          lowValueMapper: (DataPointDaily data, _) => data.low,
+          highValueMapper: (DataPointDaily data, _) => data.high,
+          openValueMapper: (DataPointDaily data, _) => data.open,
+          closeValueMapper: (DataPointDaily data, _) => data.close,
+        );
+      case "candle":
+      default:
+        return CandleSeries<DataPointDaily, DateTime>(
+          dataSource: asList(),
+          enableSolidCandles: true,
+          xValueMapper: (DataPointDaily data, _) => data.date,
+          lowValueMapper: (DataPointDaily data, _) => data.low,
+          highValueMapper: (DataPointDaily data, _) => data.high,
+          openValueMapper: (DataPointDaily data, _) => data.open,
+          closeValueMapper: (DataPointDaily data, _) => data.close,
+        );
+    }
   }
 
   @override
-  Map<QueryParam, String> getParams() => {};
+  Map<QueryParam, String> getParams() =>
+      {QueryParam.stockDataLineType: lineType};
 
   @override
-  String getSummary() => symbol;
+  String getSummary() => "$symbol: $lineType";
 }
 
 class DataPointDaily {

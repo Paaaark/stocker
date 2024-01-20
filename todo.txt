@@ -1,11 +1,9 @@
 General
-  Trackballing
   Prevent page from scrolling when the cursor is on the graph
   Connect to firebase
   Period picker
-  Toggle from candle, line, ohlc
   Better zoom factor
-
+  Trackballing better summary (Show the names of indicators)
   Fullscreen function
   Dim the chart in (for aesthetic purpose)
   Top winners & Top losers
@@ -42,3 +40,5 @@ Done
   Make chips clickable
   Make Chips deletable
   Better labels when zoomed in
+  Trackballing
+  Toggle from candle, line, ohlc

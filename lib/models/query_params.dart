@@ -2,21 +2,26 @@ import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/services/api_service.dart';
 import 'package:flutter/material.dart';
 
+/// Methods to edit: getParamsByType, getParamInputWidgetByType,
 enum QueryParam {
   interval,
   timePeriod,
   seriesType,
+  stockDataLineType,
 }
 
 Map<QueryParam, String> defaultParams = {
   QueryParam.interval: "weekly",
   QueryParam.timePeriod: "10",
   QueryParam.seriesType: "open",
+  QueryParam.stockDataLineType: "candle",
 };
 
 class QueryParamsHelper {
   static Map<QueryParam, String> getParamsByType(DataType dataType) {
     switch (dataType) {
+      case DataType.stockDaily:
+        return _filterParam([QueryParam.stockDataLineType]);
       case DataType.sma:
       case DataType.rsi:
         return _filterParam([
@@ -60,6 +65,13 @@ class QueryParamsHelper {
             'high',
             'low',
           ],
+          thisQueryParam: param,
+          update: update,
+          defaultVal: defaultVal,
+        );
+      case QueryParam.stockDataLineType:
+        return _DropdownMenu(
+          items: const ['candle', 'bar', 'line'],
           thisQueryParam: param,
           update: update,
           defaultVal: defaultVal,

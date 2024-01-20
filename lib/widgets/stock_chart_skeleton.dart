@@ -17,6 +17,7 @@ Map<QueryParam, String> queryParamtoString = {
   QueryParam.interval: "Interval",
   QueryParam.timePeriod: "Time Period",
   QueryParam.seriesType: "Series Type",
+  QueryParam.stockDataLineType: "Line Type",
 };
 
 class StockChartSkeleton extends StatefulWidget {
@@ -62,7 +63,9 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   @override
   void initState() {
     super.initState();
-    addIndicator(DataType.stockDaily, {});
+    addIndicator(DataType.stockDaily, {
+      QueryParam.stockDataLineType: "candle",
+    });
     cartesianChartFunctions = {
       "onZoom": onZoom,
       "onCreateAxisController": onCreateAxisController,
