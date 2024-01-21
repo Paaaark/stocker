@@ -14,26 +14,10 @@ class APIService {
   static const String API_KEY = String.fromEnvironment("API_KEY");
   static const String OUTPUT_SIZE = "compact";
 
-  /// Returns a future of daily data of the desired symbol
-  // static Future<TimeSeriesDaily> getTimeSeriesDaily(String symbol) async {
-  //   final url =
-  //       Uri.parse("$baseUrl?$timeSeriesDaily&symbol=$symbol&apikey=demo");
-  //   final response = await http.get(url);
-  //   if (response.statusCode == 200) {
-  //     final Map<String, dynamic> fetchedData = jsonDecode(response.body);
-  //     final Map<String, dynamic> fetchedTimeSeries =
-  //         fetchedData['Time Series (Daily)'];
-  //     final TimeSeriesDaily timeSeriesDaily =
-  //         TimeSeriesDaily.fromJSONWithSymbol(fetchedTimeSeries, symbol);
-  //     return timeSeriesDaily;
-  //   }
-
-  //   throw Error();
-  // }
-
   /// Returns a future of data of the desired symbol and type
   static Future<dynamic> fetchDataByType(
-      String symbol, DataType dataType, Map<QueryParam, String> params) async {
+      String symbol, DataType dataType, Map<QueryParam, String> params,
+      {String interval = "daily"}) async {
     String dataTypeStr = DataTypeHelper.dataTypeEnumToString[dataType]!;
     dynamic url;
     switch (dataType) {
@@ -43,19 +27,19 @@ class APIService {
         break;
       case DataType.sma:
         url =
-            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=$interval&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
         break;
       case DataType.rsi:
         url =
-            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=${params[QueryParam.interval]}&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=$interval&time_period=${params[QueryParam.timePeriod]}&series_type=${params[QueryParam.seriesType]}&apikey=$API_KEY";
         break;
       case DataType.obv:
         url =
-            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=${params[QueryParam.interval]}&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=$interval&apikey=$API_KEY";
         break;
       case DataType.stoch:
         url =
-            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=daily&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&symbol=$symbol&interval=$interval&apikey=$API_KEY";
         break;
     }
 
@@ -69,8 +53,8 @@ class APIService {
       }
 
       if (dataType == DataType.stockDaily) {
-        return TimeSeriesDaily.fromJSON(
-            fetchedData, line: params[QueryParam.stockDataLineType]);
+        return TimeSeriesDaily.fromJSON(fetchedData,
+            line: params[QueryParam.stockDataLineType]);
       }
       if ([DataType.sma, DataType.rsi, DataType.obv, DataType.stoch]
           .contains(dataType)) {
@@ -80,7 +64,8 @@ class APIService {
   }
 
   static Future<Map<String, Map<String, DataModel>>> refetchAllData(
-      Map<String, Map<String, DataModel>> currentData, String newSymbol) async {
+      Map<String, Map<String, DataModel>> currentData, String newSymbol,
+      {String interval = "daily"}) async {
     Map<String, Map<String, DataModel>> newData = {};
     for (String id in currentData.keys) {
       Map<String, DataModel> newRow = {};
@@ -90,6 +75,7 @@ class APIService {
             newSymbol,
             currentData[id]![subId]!.dataType,
             currentData[id]![subId]!.getParams(),
+            interval: interval,
           );
         } catch (e) {
           print(e);

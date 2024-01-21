@@ -4,6 +4,7 @@ import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:stocker/widgets/cartesian_chart.dart';
+import 'package:stocker/widgets/chart_header.dart';
 import 'package:stocker/widgets/loading_spinner.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
@@ -38,6 +39,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
 
   /// Stores information about the charts
   String symbol = "IBM";
+  String interval = "daily";
   String? mainChartId;
 
   /// Data for the charts
@@ -57,8 +59,6 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   Map<String, TrackballBehavior> trackballBehaviors = {};
 
   late final Map<String, Function> cartesianChartFunctions;
-
-  final TextEditingController _tickerFieldController = TextEditingController();
 
   @override
   void initState() {
@@ -164,6 +164,23 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     } catch (e) {
       await symbolNotFoundFunction(newSymbol);
     }
+
+    setState(() => isLoading = false);
+  }
+
+  void updateInterval(String newInterval) async {
+    setState(() => isLoading = true);
+
+    dataSeries = await APIService.refetchAllData(
+      dataSeries,
+      symbol,
+      interval: newInterval,
+    );
+
+    for (String id in charts.keys) {
+      _createChart(id);
+    }
+    interval = newInterval;
 
     setState(() => isLoading = false);
   }
@@ -276,8 +293,11 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                 message: QueryParamsHelper.helpMessage(key),
                 child: const Icon(Icons.question_mark),
               ),
-              QueryParamsHelper.getParamInputWidgetByType(
-                  key, indicatorParamsInput.update, value),
+              QueryParamsHelper.getParamInputWidgetByType(key,
+                  (QueryParam param, String newValue) {
+                indicatorParamsInput.update(param, (value) => newValue,
+                    ifAbsent: () => newValue);
+              }, value),
             ],
           ),
         ),
@@ -383,62 +403,11 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  "Stock Chart: $symbol",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .displayLarge
-                                        ?.color,
-                                  ),
-                                ),
-                              ),
-                              const Expanded(
-                                flex: 2,
-                                child: SizedBox(),
-                              ),
-                              Expanded(
-                                child: SizedBox(
-                                  height: 34,
-                                  child: TextField(
-                                    controller: _tickerFieldController,
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      filled: true,
-                                      fillColor:
-                                          Theme.of(context).highlightColor,
-                                      hintText: 'Ticker & Enter...',
-                                    ),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                    ),
-                                    onSubmitted: ((value) {
-                                      refetchAllData(value);
-                                      setState(() {
-                                        _tickerFieldController.clear();
-                                      });
-                                    }),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 3),
-                                child: IconButton(
-                                  onPressed: () => {
-                                    toggleShowSettings(),
-                                  },
-                                  icon: const Icon(Icons.add),
-                                  color: Theme.of(context).primaryColorLight,
-                                ),
-                              ),
-                            ],
+                          ChartHeader(
+                            symbol: symbol,
+                            refetchAllData: refetchAllData,
+                            toggleShowSettings: toggleShowSettings,
+                            updateInterval: updateInterval,
                           ),
                           if (isLoading)
                             const Expanded(

@@ -6,7 +6,6 @@ General
   Trackballing better summary (Show the names of indicators)
   Toggle between time interval (daily, intraday, etc)
   Finish tooltip helper (prettier, more info)
-  Add indicators using syncfusion
   Fullscreen function
   Dim the chart in (for aesthetic purpose)
   Top winners & Top losers
@@ -17,6 +16,8 @@ General
   Even prettier labels
   Migrate from json to csv for faster data fetching
 
+Eventually migrate most parameters to be named
+
 technical_indicator_daily.dart
   Add more indicators
 
@@ -26,6 +27,7 @@ single_stock_chart.dart
 
 stock_chart_skeleton.dart
   Design the buttons in showIndicatorOptions
+
 
 
 Done

@@ -1,6 +1,7 @@
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:stocker/widgets/custom_dropdown_menu.dart';
 
 /// Methods to edit: getParamsByType, getParamInputWidgetByType,
 enum QueryParam {
@@ -24,13 +25,9 @@ class QueryParamsHelper {
         return _filterParam([QueryParam.stockDataLineType]);
       case DataType.sma:
       case DataType.rsi:
-        return _filterParam([
-          QueryParam.interval,
-          QueryParam.timePeriod,
-          QueryParam.seriesType
-        ]);
+        return _filterParam([QueryParam.timePeriod, QueryParam.seriesType]);
       case DataType.obv:
-        return _filterParam([QueryParam.interval]);
+        return _filterParam([]);
     }
     return {};
   }
@@ -42,7 +39,7 @@ class QueryParamsHelper {
   ) {
     switch (param) {
       case QueryParam.interval:
-        return _DropdownMenu(
+        return CustomDropdownMenu(
           items: const [
             "1min",
             "5min",
@@ -58,7 +55,7 @@ class QueryParamsHelper {
           defaultVal: defaultVal,
         );
       case QueryParam.seriesType:
-        return _DropdownMenu(
+        return CustomDropdownMenu(
           items: const [
             'open',
             'close',
@@ -70,7 +67,7 @@ class QueryParamsHelper {
           defaultVal: defaultVal,
         );
       case QueryParam.stockDataLineType:
-        return _DropdownMenu(
+        return CustomDropdownMenu(
           items: const ['candle', 'bar', 'line'],
           thisQueryParam: param,
           update: update,
@@ -105,61 +102,6 @@ class QueryParamsHelper {
       targetValues.add(defaultParams[key]!);
     }
     return Map.fromIterables(targetKeys, targetValues);
-  }
-}
-
-class _DropdownMenu extends StatefulWidget {
-  final List<String> items;
-  final QueryParam thisQueryParam;
-  final String defaultVal;
-  final Function update;
-  const _DropdownMenu(
-      {required this.items,
-      required this.thisQueryParam,
-      required this.update,
-      required this.defaultVal,
-      super.key});
-
-  @override
-  State<_DropdownMenu> createState() => __DropdownMenuState();
-}
-
-class __DropdownMenuState extends State<_DropdownMenu> {
-  late String selectedItem;
-  @override
-  void initState() {
-    selectedItem = widget.defaultVal;
-    widget.update(widget.thisQueryParam, (value) => selectedItem,
-        ifAbsent: () => selectedItem);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownMenu(
-      initialSelection: selectedItem,
-      width: 110,
-      onSelected: (String? item) {
-        setState(() {
-          selectedItem = item!;
-          widget.update(widget.thisQueryParam, (value) => selectedItem);
-        });
-      },
-      textStyle: const TextStyle(fontSize: 14),
-      inputDecorationTheme: InputDecorationTheme(
-        isCollapsed: true,
-        isDense: true,
-        filled: true,
-        fillColor: Theme.of(context).highlightColor,
-        contentPadding: const EdgeInsets.only(left: 10),
-      ),
-      dropdownMenuEntries:
-          widget.items.map<DropdownMenuEntry<String>>((String item) {
-        return DropdownMenuEntry<String>(
-          value: item,
-          label: item,
-        );
-      }).toList(),
-    );
   }
 }
 

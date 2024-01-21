@@ -12,16 +12,6 @@ class TimeSeriesDaily extends DataModel {
   late final String symbol;
   late final String lineType;
 
-  // TimeSeriesDaily.fromJSONWithSymbol(Map<String, dynamic> json, this.symbol) {
-  //   Map<DateTime, DataPointDaily> myData = {};
-  //   final List<String> fetchedDates = json.keys.toList();
-  //   for (var date in fetchedDates) {
-  //     myData[DateTime.parse(date)] =
-  //         DataPointDaily.fromJSONAndDate(json[date], DateTime.parse(date));
-  //   }
-  //   data = myData;
-  // }
-
   TimeSeriesDaily.fromJSON(Map<String, dynamic> json, {String? line}) {
     Map<DateTime, DataPointDaily> myData = {};
     Map<String, dynamic> stockData = json['Time Series (Daily)'];
