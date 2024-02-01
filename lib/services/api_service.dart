@@ -6,24 +6,28 @@ import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:stocker/models/technical_indicator_daily.dart';
-import 'package:stocker/models/time_series_daily.dart';
+import 'package:stocker/models/stock_series.dart';
 
 class APIService {
   static const String baseUrl = "https://www.alphavantage.co/query";
   static const String timeSeriesDaily = "function=TIME_SERIES_DAILY";
   static const String API_KEY = String.fromEnvironment("API_KEY");
-  static const String OUTPUT_SIZE = "compact";
+  static const String OUTPUT_SIZE = "full";
 
   /// Returns a future of data of the desired symbol and type
-  static Future<dynamic> fetchDataByType(
-      String symbol, DataType dataType, Map<QueryParam, String> params,
-      {String interval = "daily"}) async {
-    String dataTypeStr = DataTypeHelper.dataTypeEnumToString[dataType]!;
+  static Future<dynamic> fetchDataByType({
+    required String symbol,
+    required DataType dataType,
+    required Map<QueryParam, String> params,
+    required String interval,
+  }) async {
+    String dataTypeStr =
+        DataTypeHelper.dataTypeEnumToString(dataType, interval: interval);
     dynamic url;
     switch (dataType) {
-      case DataType.stockDaily:
+      case DataType.stock:
         url =
-            "$baseUrl?function=$dataTypeStr&symbol=$symbol&outputsize=$OUTPUT_SIZE&apikey=$API_KEY";
+            "$baseUrl?function=$dataTypeStr&interval=$interval&symbol=$symbol&outputsize=$OUTPUT_SIZE&apikey=$API_KEY";
         break;
       case DataType.sma:
         url =
@@ -52,9 +56,9 @@ class APIService {
         throw Exception();
       }
 
-      if (dataType == DataType.stockDaily) {
-        return TimeSeriesDaily.fromJSON(fetchedData,
-            line: params[QueryParam.stockDataLineType]);
+      if (dataType == DataType.stock) {
+        return StockSeries.fromJSON(fetchedData,
+            line: params[QueryParam.stockDataLineType], interval: interval);
       }
       if ([DataType.sma, DataType.rsi, DataType.obv, DataType.stoch]
           .contains(dataType)) {
@@ -72,13 +76,12 @@ class APIService {
       for (String subId in currentData[id]!.keys) {
         try {
           newRow[subId] = await fetchDataByType(
-            newSymbol,
-            currentData[id]![subId]!.dataType,
-            currentData[id]![subId]!.getParams(),
+            symbol: newSymbol,
+            dataType: currentData[id]![subId]!.dataType,
+            params: currentData[id]![subId]!.getParams(),
             interval: interval,
           );
         } catch (e) {
-          print(e);
           rethrow;
         }
       }
@@ -97,7 +100,6 @@ class APIService {
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final Map<String, dynamic> fetchedData = jsonDecode(response.body);
-      print(fetchedData);
       for (Map<String, dynamic> bestMatch in fetchedData["bestMatches"]) {
         Map<String, String> match = {
           "symbol": bestMatch["1. symbol"],

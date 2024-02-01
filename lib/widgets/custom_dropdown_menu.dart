@@ -25,6 +25,7 @@ class _CustomDropdownMenuState extends State<CustomDropdownMenu> {
 
   @override
   void initState() {
+    super.initState();
     selectedItem = widget.defaultVal;
     widget.update(widget.thisQueryParam, selectedItem);
   }

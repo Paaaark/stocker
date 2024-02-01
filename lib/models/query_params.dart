@@ -1,5 +1,4 @@
 import 'package:stocker/models/data_type_helper.dart';
-import 'package:stocker/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stocker/widgets/custom_dropdown_menu.dart';
 
@@ -21,7 +20,7 @@ Map<QueryParam, String> defaultParams = {
 class QueryParamsHelper {
   static Map<QueryParam, String> getParamsByType(DataType dataType) {
     switch (dataType) {
-      case DataType.stockDaily:
+      case DataType.stock:
         return _filterParam([QueryParam.stockDataLineType]);
       case DataType.sma:
       case DataType.rsi:
@@ -80,8 +79,6 @@ class QueryParamsHelper {
           update: update,
         );
     }
-
-    return const Text("...");
   }
 
   static String helpMessage(QueryParam param) {
@@ -105,15 +102,16 @@ class QueryParamsHelper {
   }
 }
 
+// ignore: must_be_immutable
 class _TextInput extends StatefulWidget {
   String initialValue;
   QueryParam thisQueryParam;
   Function update;
-  _TextInput(
-      {required this.initialValue,
-      required this.thisQueryParam,
-      required this.update,
-      super.key});
+  _TextInput({
+    required this.initialValue,
+    required this.thisQueryParam,
+    required this.update,
+  });
 
   @override
   State<_TextInput> createState() => __TextInputState();
@@ -122,8 +120,8 @@ class _TextInput extends StatefulWidget {
 class __TextInputState extends State<_TextInput> {
   @override
   void initState() {
-    widget.update(widget.thisQueryParam, (value) => widget.initialValue,
-        ifAbsent: () => widget.initialValue);
+    super.initState();
+    widget.update(widget.thisQueryParam, widget.initialValue);
   }
 
   @override

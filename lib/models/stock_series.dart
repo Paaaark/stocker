@@ -1,21 +1,24 @@
-import 'dart:math';
-
 import 'package:stocker/models/data_model.dart';
 import 'package:stocker/models/data_type_helper.dart';
 import 'package:stocker/models/query_params.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class TimeSeriesDaily extends DataModel {
+class StockSeries extends DataModel {
   @override
-  final DataType dataType = DataType.stockDaily;
+  final DataType dataType = DataType.stock;
   late final Map<DateTime, DataPointDaily> data;
   late final String symbol;
   late final String lineType;
 
-  TimeSeriesDaily.fromJSON(Map<String, dynamic> json, {String? line}) {
+  StockSeries.fromJSON(
+    Map<String, dynamic> json, {
+    String? line,
+    String interval = "daily",
+  }) {
     Map<DateTime, DataPointDaily> myData = {};
-    Map<String, dynamic> stockData = json['Time Series (Daily)'];
     Map<String, dynamic> metaData = json['Meta Data'];
+    Map<String, dynamic> stockData =
+        json[DataTypeHelper.dataLabelFromInterval(interval)];
     final List<String> fetchedDates = stockData.keys.toList();
     for (var date in fetchedDates) {
       myData[DateTime.parse(date)] =

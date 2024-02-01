@@ -23,8 +23,6 @@ Map<String, DataType> indicatorToEnum = {
 };
 
 class TechnicalIndicatorDaily extends DataModel {
-  @override
-  late final DataType dataType;
   late final String symbol;
   late final Map<DateTime, DateValuePair> data;
   late final Map<String, dynamic> metaData;
@@ -61,13 +59,13 @@ class TechnicalIndicatorDaily extends DataModel {
   String getSummary() {
     switch (dataType) {
       case DataType.sma:
-        return "SMA(${metaData["4: Interval"]}, ${metaData["5: Time Period"]}, ${metaData["6: Series Type"]})";
+        return "SMA(${metaData["5: Time Period"]}, ${metaData["6: Series Type"]})";
       case DataType.rsi:
-        return "RSI(${metaData["4: Interval"]}, ${metaData["5: Time Period"]}, ${metaData["6: Series Type"]})";
+        return "RSI(${metaData["5: Time Period"]}, ${metaData["6: Series Type"]})";
       case DataType.obv:
-        return "OBV(${metaData["4: Interval"]})";
+        return "OBV";
       case DataType.stoch:
-        return "STOCH(${metaData["4: Interval"]}, ${metaData["5.1: FastK Period"]}, ${metaData["5.2: SlowK Period"]}, ${metaData["5.3: SlowK MA Type"]}, ${metaData["5.4: SlowD Period"]}, ${metaData["5.5: SlowD MA Type"]})";
+        return "STOCH(${metaData["5.1: FastK Period"]}, ${metaData["5.2: SlowK Period"]}, ${metaData["5.3: SlowK MA Type"]}, ${metaData["5.4: SlowD Period"]}, ${metaData["5.5: SlowD MA Type"]})";
     }
     return "";
   }

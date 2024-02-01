@@ -10,7 +10,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:stocker/services/api_service.dart';
 
 List<DataType> dataTypeCategoryOne = [
-  DataType.stockDaily,
+  DataType.stock,
   DataType.sma,
 ];
 
@@ -63,7 +63,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
   @override
   void initState() {
     super.initState();
-    addIndicator(DataType.stockDaily, {
+    addIndicator(DataType.stock, {
       QueryParam.stockDataLineType: "candle",
     });
     cartesianChartFunctions = {
@@ -88,8 +88,12 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     String subId = APIService.getUniqueID();
 
     // Fetch the data using APIService
-    DataModel tempHolder =
-        await APIService.fetchDataByType(symbol, dataType, params);
+    DataModel tempHolder = await APIService.fetchDataByType(
+      symbol: symbol,
+      dataType: dataType,
+      params: params,
+      interval: interval,
+    );
     if (dataTypeCategoryOne.contains(dataType)) {
       // If mainChartId doesn't exist, set it to current id
       mainChartId ??= id;
@@ -125,8 +129,12 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       isLoading = true;
     });
 
-    DataModel tempHolder =
-        await APIService.fetchDataByType(symbol, dataType, params);
+    DataModel tempHolder = await APIService.fetchDataByType(
+      symbol: symbol,
+      dataType: dataType,
+      params: params,
+      interval: interval,
+    );
     dataSeries[chartId]?[subId] = tempHolder;
     _createChart(chartId);
 
@@ -264,7 +272,7 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
     /// Add the top text showing the dataType
     indicatorParamsWidget.add(
       Text(
-        DataTypeHelper.dataTypeEnumToString[dataType]!,
+        DataTypeHelper.dataTypeEnumToString(dataType, interval: interval),
         style: const TextStyle(
           fontSize: 16,
         ),
@@ -456,7 +464,8 @@ class _StockChartSkeletonState extends State<StockChartSkeleton> {
       DataType dataType, Function toggleIndicatorParams) {
     return TextButton(
       onPressed: () => toggleIndicatorParams(dataType),
-      child: Text(DataTypeHelper.dataTypeEnumToString[dataType]!),
+      child: Text(
+          DataTypeHelper.dataTypeEnumToString(dataType, interval: interval)),
     );
   }
 }

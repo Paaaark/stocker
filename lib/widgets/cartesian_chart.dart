@@ -44,6 +44,7 @@ class _CartesianChartState extends State<CartesianChart> {
   late TrackballBehavior trackballBehavior;
   @override
   void initState() {
+    super.initState();
     trackballBehavior = TrackballBehavior(
       enable: true,
       tooltipDisplayMode: TrackballDisplayMode.groupAllPoints,
@@ -80,7 +81,6 @@ class _CartesianChartState extends State<CartesianChart> {
           onZoomStart: (ZoomPanArgs args) {
             if (args.axis?.name == 'primaryXAxis') {
               widget.onZoom(args.currentZoomPosition, args.currentZoomFactor);
-              print("${args.currentZoomFactor}, ${args.currentZoomPosition}");
             }
           },
           onZooming: (ZoomPanArgs args) {
