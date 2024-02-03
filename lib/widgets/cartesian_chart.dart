@@ -42,6 +42,7 @@ class CartesianChart extends StatefulWidget {
 
 class _CartesianChartState extends State<CartesianChart> {
   late TrackballBehavior trackballBehavior;
+  
   @override
   void initState() {
     super.initState();

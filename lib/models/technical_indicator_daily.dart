@@ -67,7 +67,6 @@ class TechnicalIndicatorDaily extends DataModel {
       case DataType.stoch:
         return "STOCH(${metaData["5.1: FastK Period"]}, ${metaData["5.2: SlowK Period"]}, ${metaData["5.3: SlowK MA Type"]}, ${metaData["5.4: SlowD Period"]}, ${metaData["5.5: SlowD MA Type"]})";
     }
-    return "";
   }
 
   @override
@@ -84,8 +83,9 @@ class TechnicalIndicatorDaily extends DataModel {
         return {
           QueryParam.interval: "${metaData["4: Interval"]}",
         };
+      default:
+        return {};
     }
-    return {};
   }
 }
 
